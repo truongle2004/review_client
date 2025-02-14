@@ -1,19 +1,17 @@
-'use client'
+'use client';
 
-import SectionComponent from "@/components/SectionCustom";
-import TextEditor from "@/components/TextEditor";
-import { profile_schema } from "@/schema";
-import editProfileStore from "@/store/editProfileStore";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import Calendar from "react-calendar";
-import { useForm } from "react-hook-form";
+import SectionComponent from '@/components/SectionCustom';
+import TextEditor from '@/components/TextEditor';
+import { profile_schema } from '@/schema';
+import editProfileStore from '@/store/editProfileStore';
+import { Gender } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useState } from 'react';
+import Calendar from 'react-calendar';
+import { useForm } from 'react-hook-form';
 import PhoneInput from 'react-phone-number-input';
 
-
 const About = () => {
-
-
   const [bio, setBio] = useState('');
   const [openEditor, setOpenEditor] = useState(false);
 
@@ -21,7 +19,14 @@ const About = () => {
 
   const [phoneNumber, setPhoneNumber] = useState('');
 
+  const [gender, setGender] = useState('');
 
+  const handleSetGender = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.currentTarget.type === 'checkbox') {
+      console.log(e.currentTarget.id);
+      setGender(e.currentTarget.checked ? e.currentTarget.id : '');
+    }
+  };
 
   const handleToggleEditor = () => setOpenEditor(!openEditor);
 
@@ -34,7 +39,6 @@ const About = () => {
     },
     resolver: zodResolver(profile_schema),
   });
-
 
   const { open } = editProfileStore();
   return (
@@ -117,9 +121,21 @@ const About = () => {
         <div className="flex gap-3">
           <p className="font-bold">Gender: </p>
           <p>Male</p>
-          <input type="checkbox" defaultChecked className="checkbox" />
+          <input
+            type="checkbox"
+            id="male"
+            checked={Gender.Male === gender ? true : false}
+            className="checkbox"
+            onChange={handleSetGender}
+          />
           <p>Female</p>
-          <input type="checkbox" className="checkbox" />
+          <input
+            type="checkbox"
+            id="female"
+            checked={Gender.Female === gender ? true : false}
+            className="checkbox"
+            onChange={handleSetGender}
+          />
         </div>
       </SectionComponent>
 

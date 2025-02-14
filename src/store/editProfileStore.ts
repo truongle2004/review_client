@@ -6,7 +6,7 @@ interface OpenProfileEdit {
 }
 
 const editProfileStore = create<OpenProfileEdit>((set) => ({
-  open: true,
+  open: false,
   setOpen(open) {
     set({ open });
   },

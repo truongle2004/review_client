@@ -95,11 +95,12 @@ const UserPage = () => {
           </div>
         ) : (
           <div>
-            {open ? (
+            {open && (
               <button className="btn" onClick={handleSetOpen}>
                 Edit Profile
               </button>
-            ) : (
+            )}
+            {!open && (
               <button className="btn btn-success" onClick={handleSetClose}>
                 Save
               </button>
@@ -110,7 +111,7 @@ const UserPage = () => {
         {/* Navigation Buttons */}
         <div className="flex flex-row gap-3 mt-6">
           <button
-            className={`${buttonIndex === 0 ? 'btn-success' : ''}px-4 py-2 rounded-md btn transition text-white`}
+            className={`${buttonIndex === 0 ? 'btn-success btn-outline' : ''} btn px-4 py-2 rounded-md transition text-white`}
             onClick={() => handleSetButtonIndex(0)}
           >
             <FontAwesomeIcon icon={faTimeline} />
@@ -118,7 +119,7 @@ const UserPage = () => {
           </button>
 
           <button
-            className={`${buttonIndex === 1 ? 'btn-success' : ''}px-4 btn py-2 rounded-md transition text-white`}
+            className={`${buttonIndex === 1 ? 'btn-success btn-outline' : ''} btn px-4 py-2 rounded-md transition text-white`}
             onClick={() => handleSetButtonIndex(1)}
           >
             <FontAwesomeIcon icon={faUser} />
