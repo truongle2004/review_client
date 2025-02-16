@@ -13,7 +13,6 @@ import PhoneInput from 'react-phone-number-input';
 
 const About = () => {
   const [bio, setBio] = useState('');
-  const [openEditor, setOpenEditor] = useState(false);
 
   const handleSetBio = (value: string) => setBio(value);
 
@@ -21,14 +20,20 @@ const About = () => {
 
   const [gender, setGender] = useState('');
 
+  const { setOpen, open } = editProfileStore();
+
+  const handleCancel = () => setOpen(false);
+  const handleCloseEditAndSave = () => {
+    setOpen(false);
+    // TODO: save data
+  };
+
   const handleSetGender = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.currentTarget.type === 'checkbox') {
       console.log(e.currentTarget.id);
       setGender(e.currentTarget.checked ? e.currentTarget.id : '');
     }
   };
-
-  const handleToggleEditor = () => setOpenEditor(!openEditor);
 
   const { register } = useForm({
     defaultValues: {
@@ -40,7 +45,6 @@ const About = () => {
     resolver: zodResolver(profile_schema),
   });
 
-  const { open } = editProfileStore();
   return (
     <div className="mt-6 space-y-4 flex flex-col gap-5">
       <SectionComponent title="Contact Information">
@@ -89,10 +93,14 @@ const About = () => {
 
           <div className="flex items-center gap-3">
             <p className="font-bold w-32 text-white">Phone number:</p>
-            <PhoneInput
-              onChange={(value) => setPhoneNumber(value as string)}
-              className="input input-bordered w-full max-w-xs"
-            />
+            {open ? (
+              <PhoneInput
+                onChange={(value) => setPhoneNumber(value as string)}
+                className="input input-bordered w-full max-w-xs"
+              />
+            ) : (
+              <p>123456789</p>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -143,15 +151,23 @@ const About = () => {
 
       {/* BIO SectionComponent */}
       <div>
-        <button className="btn btn-sm" onClick={handleToggleEditor}>
-          edit
-        </button>
-        {openEditor ? (
+        {open ? (
           <TextEditor field="bio" labelText="bio editing" setValue={handleSetBio} />
         ) : (
           <SectionComponent title="BIO">{bio}</SectionComponent>
         )}
       </div>
+
+      {open && (
+        <div className="flex flex-row items-center gap-3">
+          <button className="btn btn-error btn-outline" onClick={handleCancel}>
+            Cancel
+          </button>
+          <button className="btn btn-success btn-outline" onClick={handleCloseEditAndSave}>
+            Save
+          </button>
+        </div>
+      )}
     </div>
   );
 };

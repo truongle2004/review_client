@@ -21,14 +21,14 @@ const UserPage = () => {
     userInfo: { isAdmin },
   } = useAuthStore();
 
-  const { setOpen, open } = editProfileStore();
+  const { setOpen, open, setIsUserProfile, isUserProfile } = editProfileStore();
 
   const handleSetOpen = () => setOpen(true);
-  const handleSetClose = () => setOpen(false);
-
   const [buttonIndex, setButtonIndex] = useState(1);
 
   const handleSetButtonIndex = (index: number) => setButtonIndex(index);
+
+  const handleSetIsUserProfile = (isProfile: boolean) => setIsUserProfile(isProfile);
 
   return (
     <div className="mx-auto flex gap-20 p-6 border border-gray-200 rounded-lg">
@@ -94,15 +94,10 @@ const UserPage = () => {
             </button>
           </div>
         ) : (
-          <div>
-            {open && (
+          <div className="mt-3">
+            {!open && isUserProfile && (
               <button className="btn" onClick={handleSetOpen}>
                 Edit Profile
-              </button>
-            )}
-            {!open && (
-              <button className="btn btn-success" onClick={handleSetClose}>
-                Save
               </button>
             )}
           </div>
@@ -112,7 +107,10 @@ const UserPage = () => {
         <div className="flex flex-row gap-3 mt-6">
           <button
             className={`${buttonIndex === 0 ? 'btn-success btn-outline' : ''} btn px-4 py-2 rounded-md transition text-white`}
-            onClick={() => handleSetButtonIndex(0)}
+            onClick={() => {
+              handleSetButtonIndex(0);
+              handleSetIsUserProfile(false);
+            }}
           >
             <FontAwesomeIcon icon={faTimeline} />
             <span>Time-line</span>
@@ -120,7 +118,10 @@ const UserPage = () => {
 
           <button
             className={`${buttonIndex === 1 ? 'btn-success btn-outline' : ''} btn px-4 py-2 rounded-md transition text-white`}
-            onClick={() => handleSetButtonIndex(1)}
+            onClick={() => {
+              handleSetButtonIndex(1);
+              handleSetIsUserProfile(true);
+            }}
           >
             <FontAwesomeIcon icon={faUser} />
             <span>About</span>
