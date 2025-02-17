@@ -2,18 +2,18 @@
 
 import Card from '@/components/Card';
 import Paginate from '@/components/Paginate';
-import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import { fetchProductAPI } from '@/services/product';
-import { AppConstant } from '@/utils/AppConstant';
 import type { Product } from '@/types';
-import slugify from 'react-slugify';
+import { AppConstant } from '@/utils/AppConstant';
+import { convertToSlug } from '@/utils/slugify';
+import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 const HomePage = () => {
   const router = useRouter();
 
   const onClickCard = (id: string | number, title: string) => {
-    const slug = slugify(title);
+    const slug = convertToSlug(title);
     router.push(`/review/detail/${id}/${slug}`);
   };
 
