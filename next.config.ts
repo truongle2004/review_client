@@ -1,15 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // images: {
-  //   remotePatterns: [
-  //     {
-  //       protocol: 'https',
-  //       hostname: 'assets.example.com',
-  //       pathname: '/account123/**',
-  //     },
-  //   ],
-  // },
+  env: {
+    SERVER_URL: 'http://localhost:3000',
+  },
 };
 
 export default nextConfig;

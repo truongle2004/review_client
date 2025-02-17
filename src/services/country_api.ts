@@ -1,4 +1,4 @@
-import axiosInstance from '@/utiles/axiosInstance';
+import axiosInstance from '@/utils/axiosInstance';
 
 export const getCountries = async () => {
   const response = await axiosInstance.get(

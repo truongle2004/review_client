@@ -5,6 +5,7 @@ import 'react-quill-new/dist/quill.snow.css';
 import 'react-phone-number-input/style.css';
 import 'react-calendar/dist/Calendar.css';
 import '@fortawesome/fontawesome-svg-core/styles.css';
+import { QueryProvider } from '@/components/QueryProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,7 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }
