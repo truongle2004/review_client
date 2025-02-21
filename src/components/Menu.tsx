@@ -10,7 +10,7 @@ const Menu = () => {
   if (!data) return null;
 
   return (
-    <div className="card">
+    <div className="card m-10">
       {data &&
         data.map((item) => (
           <p key={item.id} className="hover:underline cursor-pointer">

@@ -4,6 +4,14 @@ const nextConfig: NextConfig = {
   env: {
     SERVER_URL: 'http://localhost:3000',
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      }
+    ]
+  }
 };
 
 export default nextConfig;
