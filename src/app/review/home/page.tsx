@@ -15,6 +15,7 @@ import { useState, type ChangeEvent } from 'react';
 const HomePage = () => {
   const router = useRouter();
   const [selectData, setSelectData] = useState('');
+  const [page, setPage] = useState(AppConstant.FIRST_PAGE);
 
   const onClickCard = (id: string | number, title: string) => {
     const slug = convertToSlug(title);
@@ -26,14 +27,14 @@ const HomePage = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['products', AppConstant.FIRST_PAGE, AppConstant.PAGE_SIZE],
+    queryKey: ['products', page, AppConstant.PAGE_SIZE],
     queryFn: () =>
       fetchProductAPI({
-        page: AppConstant.FIRST_PAGE,
+        page: page,
         limit: AppConstant.PAGE_SIZE,
       }),
     // check if AppConstant.FIRST_PAGE and AppConstant.PAGE_SIZE is not null
-    enabled: !!AppConstant.FIRST_PAGE && !!AppConstant.PAGE_SIZE,
+    enabled: !!page,
   });
 
   const handleSetSelectData = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -41,6 +42,10 @@ const HomePage = () => {
     setSelectData(e.target.value);
 
     // TODO: use lodash debound and call api
+  };
+
+  const handlePageChange = (page: number) => {
+    setPage(page);
   };
 
   if (isLoading)
@@ -52,8 +57,10 @@ const HomePage = () => {
 
   if (error) return <p>Error: {error.message}</p>;
 
+  console.log(page)
+
   return (
-    <div className="flex justify-center items-start min-h-screen">
+    <div className="flex justify-center items-start min-h-screen mb-10">
       <Menu />
       <main className="w-1/2">
         <div className="flex items-center mb-5">
@@ -82,8 +89,8 @@ const HomePage = () => {
                 <Image
                   src={item.images[0].src}
                   alt={item.images[0].alt}
-                  width={200}
-                  height={200}
+                  width={100}
+                  height={100}
                   className="object-cover"
                 />
               </figure>
@@ -110,6 +117,7 @@ const HomePage = () => {
           limit={listProduct?.limit as number}
           total={listProduct?.total as number}
           page={listProduct?.page as number}
+          onPageChange={handlePageChange}
         />
       </main>
     </div>

@@ -1,21 +1,53 @@
-import type { FC } from 'react';
+import { FC } from "react";
 
 interface PaginateProps {
   limit: number;
   total: number;
   page: number;
+  onPageChange: (page: number) => void;
 }
 
-const LIMIT_NUMBER = 5;
+const Paginate: FC<PaginateProps> = ({ limit, total, page, onPageChange }) => {
+  const totalPages = Math.ceil(total / limit);
 
-const Paginate: FC<PaginateProps> = () => {
+  const getPages = () => {
+    if (totalPages <= 5) return [...Array(totalPages)].map((_, i) => i + 1);
+    if (page <= 3) return [1, 2, 3, "...", totalPages];
+    if (page >= totalPages - 2) return [1, "...", totalPages - 2, totalPages - 1, totalPages];
+    return [1, "...", page - 1, page, page + 1, "...", totalPages];
+  };
+
   return (
-    <div className="join flex justify-center">
-      <button className="join-item btn">1</button>
-      <button className="join-item btn">2</button>
-      <button className="join-item btn btn-disabled">...</button>
-      <button className="join-item btn">99</button>
-      <button className="join-item btn">100</button>
+    <div className="flex justify-center mt-5 space-x-2">
+      <button
+        className="btn"
+        disabled={page === 1}
+        onClick={() => onPageChange(page - 1)}
+      >
+        Prev
+      </button>
+
+      {getPages().map((p, index) =>
+        p === "..." ? (
+          <span key={index} className="btn btn-disabled">...</span>
+        ) : (
+          <button
+            key={index}
+            className={`btn ${p === page ? "btn-primary" : "btn-outline"}`}
+            onClick={() => onPageChange(Number(p))}
+          >
+            {p}
+          </button>
+        )
+      )}
+
+      <button
+        className="btn"
+        disabled={page === totalPages}
+        onClick={() => onPageChange(page + 1)}
+      >
+        Next
+      </button>
     </div>
   );
 };
