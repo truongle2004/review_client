@@ -1,14 +1,12 @@
 'use client';
 
-import Card from '@/components/Card';
+import ListProduct from '@/components/ListProduct';
 import Menu from '@/components/Menu';
 import Paginate from '@/components/Paginate';
 import { fetchProductAPI } from '@/services/product';
-import { Product } from '@/types';
 import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
 import { useQuery } from '@tanstack/react-query';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState, type ChangeEvent } from 'react';
 
@@ -19,7 +17,7 @@ const HomePage = () => {
 
   const onClickCard = (id: string | number, title: string) => {
     const slug = convertToSlug(title);
-    router.push(`/review/detail/${id}/${slug}`);
+    router.push(`/review/listings/${id}/${slug}`);
   };
 
   const {
@@ -57,8 +55,6 @@ const HomePage = () => {
 
   if (error) return <p>Error: {error.message}</p>;
 
-  console.log(page)
-
   return (
     <div className="flex justify-center items-start min-h-screen mb-10">
       <Menu />
@@ -78,40 +74,7 @@ const HomePage = () => {
           </select>
         </div>
 
-        {listProduct?.data?.map((item: Product) => (
-          <div
-            key={item.id}
-            onClick={() => onClickCard(item.id as number, item.title)}
-            className="mb-5"
-          >
-            <div className="card card-side p-5 bg-base-200 hover:bg-gray-950 transition-colors duration-300 ease-in-out rounded-lg cursor-pointer">
-              <figure>
-                <Image
-                  src={item.images[0].src}
-                  alt={item.images[0].alt}
-                  width={100}
-                  height={100}
-                  className="object-cover"
-                />
-              </figure>
-              <div className="card-body">
-                <h2 className="card-title">{item.title}</h2>
-                <div className="flex items-center">
-                  <p>rating: </p>
-                  <p className="text-yellow-50">{item.rating}</p>
-                  <progress
-                    className="progress progress-info w-56"
-                    value={item.rating}
-                    max="100"
-                  ></progress>
-                </div>
-                <div className="card-actions justify-end">
-                  <button className="btn btn-primary">Watch</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+        <ListProduct listProduct={listProduct?.data} onClickCard={onClickCard} />
 
         <Paginate
           limit={listProduct?.limit as number}

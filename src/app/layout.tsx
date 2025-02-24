@@ -5,6 +5,8 @@ import 'react-quill-new/dist/quill.snow.css';
 import 'react-phone-number-input/style.css';
 import 'react-calendar/dist/Calendar.css';
 import '@fortawesome/fontawesome-svg-core/styles.css';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 import { QueryProvider } from '@/components/QueryProvider';
 
 const geistSans = Geist({

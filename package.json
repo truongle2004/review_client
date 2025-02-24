@@ -28,7 +28,9 @@
     "react-phone-number-input": "^3.4.11",
     "react-quill-new": "^3.3.3",
     "react-select": "^5.10.0",
+    "react-slick": "^0.30.3",
     "react-slugify": "^4.0.1",
+    "slick-carousel": "^1.8.1",
     "zod": "^3.24.1",
     "zustand": "^5.0.3"
   },
@@ -37,6 +39,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-slick": "^0.23.13",
     "autoprefixer": "^10.4.20",
     "daisyui": "^3.9.4",
     "eslint": "^9",

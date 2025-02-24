@@ -1,5 +1,5 @@
 import { env } from '@/enviroment/env';
-import type { ProductPaginateResponse } from '@/types';
+import type { Product, ProductPaginateResponse } from '@/types';
 import axiosInstance from '@/utils/axiosInstance';
 
 export const fetchProductAPI = async ({
@@ -15,4 +15,29 @@ export const fetchProductAPI = async ({
       limit,
     },
   });
+};
+
+export const fetchProductByCategoryAPI = async ({
+  page,
+  limit,
+  categoryId,
+}: {
+  page: number;
+  limit: number;
+  categoryId: string;
+}): Promise<ProductPaginateResponse> => {
+  return await axiosInstance.get(env.SERVER_URL + `/v1/product/category/${categoryId}`, {
+    params: {
+      page,
+      limit,
+    },
+  });
+};
+
+export const fetchProductDetailAPI = async ({ id }: { id: number }): Promise<Product> => {
+  return await axiosInstance.get(env.SERVER_URL + `/v1/product/${id}`);
+};
+
+export const fetchProductDetailByIdAPI = async ({ id }: { id: number }): Promise<Product> => {
+  return await axiosInstance.get(env.SERVER_URL + `/v1/product/${id}`);
 };
