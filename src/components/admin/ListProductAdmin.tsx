@@ -1,15 +1,21 @@
 'use client';
 
+import { fetchAllCategoryAPI } from '@/services/category';
 import { fetchProductAPI } from '@/services/product';
 import type { Product } from '@/types';
 import { AppConstant } from '@/utils/AppConstant';
-import { useMutation } from '@tanstack/react-query';
+import { convertToSlug } from '@/utils/slugify';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 const ListProductAdmin = () => {
   const [page, setPage] = useState(AppConstant.FIRST_PAGE);
   const [listProduct, setListProduct] = useState<Product[]>([]);
+  const [category, setCategory] = useState('');
+
+  const router = useRouter();
 
   const { mutate: fetchListProductMutation, isPending } = useMutation({
     mutationFn: () =>
@@ -23,12 +29,22 @@ const ListProductAdmin = () => {
     },
   });
 
+  const { data: listCategory, isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetchAllCategoryAPI(),
+  });
+
   useEffect(() => {
     fetchListProductMutation();
   }, []);
 
   const handleLoadMore = () => {
     fetchListProductMutation();
+  };
+
+  const handleViewDetail = (id: number, title: string) => {
+    const slug = convertToSlug(title);
+    router.push(`/review/listings/${id}/${slug}`);
   };
 
   if (isPending) {
@@ -38,8 +54,28 @@ const ListProductAdmin = () => {
   return (
     <>
       <div className="overflow-x-auto">
+        <div className="m-10">
+          <select className="select select-bordered w-full max-w-xs">
+            <option disabled selected>
+              {' '}
+              -- Category --{' '}
+            </option>
+            {isLoading && <span className="loading loading-spinner loading-sm"></span>}
+            {!isLoading && listCategory?.map((item) => <option key={item.id}>{item.name}</option>)}
+          </select>
+          <select className="select select-bordered w-full max-w-xs">
+            <option disabled selected>
+              {' '}
+              -- Rating --{' '}
+            </option>
+            <option>Option 1</option>
+            <option>Option 2</option>
+            <option>Option 3</option>
+          </select>
+        </div>
         <table className="table">
           {/* head */}
+
           <thead>
             <tr>
               <th>
@@ -86,7 +122,12 @@ const ListProductAdmin = () => {
                 </td>
                 <td>Purple</td>
                 <th className="flex gap-2">
-                  <button className="btn btn-secondary btn-sm">Details</button>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleViewDetail(item.id, item.title)}
+                  >
+                    Details
+                  </button>
                   <button className="btn btn-warning btn-sm">Edit</button>
                   <button className="btn btn-error btn-sm">Delete</button>
                 </th>
@@ -96,7 +137,7 @@ const ListProductAdmin = () => {
         </table>
       </div>
 
-      <button className="btn btn-primary mx-auto mt-10" onClick={handleLoadMore}>
+      <button className="btn btn-primary mx-auto mt-10 mb-10" onClick={handleLoadMore}>
         Load more
       </button>
     </>
