@@ -24,7 +24,7 @@ export const fetchProductByCategoryAPI = async ({
 }: {
   page: number;
   limit: number;
-  categoryId: string;
+  categoryId: number;
 }): Promise<ProductPaginateResponse> => {
   return await axiosInstance.get(env.SERVER_URL + `/v1/product/category/${categoryId}`, {
     params: {
@@ -40,4 +40,8 @@ export const fetchProductDetailAPI = async ({ id }: { id: number }): Promise<Pro
 
 export const fetchProductDetailByIdAPI = async ({ id }: { id: number }): Promise<Product> => {
   return await axiosInstance.get(env.SERVER_URL + `/v1/product/${id}`);
+};
+
+export const deleteProductAPI = async ({ id }: { id: number }): Promise<{ message: string }> => {
+  return await axiosInstance.delete(env.SERVER_URL + `/v1/product/${id}`);
 };
