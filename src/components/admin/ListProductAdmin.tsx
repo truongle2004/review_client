@@ -17,7 +17,8 @@ const ListProductAdmin = () => {
   const [page, setPage] = useState(AppConstant.FIRST_PAGE);
   const [listProduct, setListProduct] = useState<Product[]>([]);
   const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [isDisabledLoadMore, setIsDisabledLoadMore] = useState(false);
+  const [openModalAlertDelete, setOpenModalAlertDelete] = useState(false);
+  const [productId, setProductId] = useState<number | null>(null);
   const [paginateData, setPaginateData] = useState<{
     page: number;
     limit: number;
@@ -110,6 +111,25 @@ const ListProductAdmin = () => {
     handleLoadMore();
   };
 
+  const handleDeleteProduct = (id: number) => {
+    setOpenModalAlertDelete(true);
+    setProductId(id);
+  };
+
+  const handleCancelDeleteProduct = () => {
+    setProductId(null);
+    setOpenModalAlertDelete(false);
+  };
+
+  const handleConfirmDeleteProduct = () => {
+    if (productId) {
+      deleteProductMutation({ id: productId });
+      setOpenModalAlertDelete(false);
+
+      setListProduct(listProduct.filter((item) => item.id !== productId));
+    }
+  };
+
   useEffect(() => {
     fetchListProductMutation();
   }, []);
@@ -120,6 +140,22 @@ const ListProductAdmin = () => {
 
   return (
     <>
+      <dialog id="my_modal_1" className={`modal ${openModalAlertDelete ? 'modal-open' : ''}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Warning!</h3>
+          <p className="py-4">Are you sure want to delete this items?</p>
+          <div className="modal-action">
+            <form method="dialog" className="flex flex-row gap-4">
+              <button className="btn btn-success" onClick={handleConfirmDeleteProduct}>
+                Sure
+              </button>
+              <button className="btn btn-warning" onClick={handleCancelDeleteProduct}>
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      </dialog>
       <div className="overflow-x-auto">
         <div className="m-10 flex justify-between items-center">
           <div className="flex flex-row gap-4 w-full items-center">
@@ -218,7 +254,12 @@ const ListProductAdmin = () => {
                     Details
                   </button>
                   <button className="btn btn-warning btn-sm">Edit</button>
-                  <button className="btn btn-error btn-sm">Delete</button>
+                  <button
+                    className="btn btn-error btn-sm"
+                    onClick={() => handleDeleteProduct(item.id)}
+                  >
+                    Delete
+                  </button>
                 </th>
               </tr>
             </tbody>
