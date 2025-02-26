@@ -73,7 +73,7 @@ const ListProductAdmin = () => {
     },
   });
 
-  const { data: listCategory, isLoading } = useQuery({
+  const { data: listCategory } = useQuery({
     queryKey: ['categories'],
     queryFn: () => fetchAllCategoryAPI(),
   });
@@ -128,6 +128,10 @@ const ListProductAdmin = () => {
 
       setListProduct(listProduct.filter((item) => item.id !== productId));
     }
+  };
+
+  const handleOnClickEdit = (id: number) => {
+    router.push(`/review/admin/${id}/edit`);
   };
 
   useEffect(() => {
@@ -253,7 +257,12 @@ const ListProductAdmin = () => {
                   >
                     Details
                   </button>
-                  <button className="btn btn-warning btn-sm">Edit</button>
+                  <button
+                    className="btn btn-warning btn-sm"
+                    onClick={() => handleOnClickEdit(item.id)}
+                  >
+                    Edit
+                  </button>
                   <button
                     className="btn btn-error btn-sm"
                     onClick={() => handleDeleteProduct(item.id)}
