@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 * {
   margin: 0;
   padding: 0;
@@ -18,7 +17,7 @@
 
 /* Color of the navbar BEFORE scroll */
 .navbar-scroll {
-  background-color: #FFC017;
+  background-color: #ffc017;
 }
 
 /* Color of the links AFTER scroll */
@@ -41,4 +40,9 @@
 .navbar-brand {
   font-size: unset;
   height: 3.5rem;
+}
+
+img {
+  width: 90%;
+  object-fit: cover;
 }

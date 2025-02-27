@@ -58,7 +58,7 @@ export default function TextEditor({
         theme="snow"
         modules={modules}
         formats={formats}
-        defaultValue={defaultValue}
+        value={defaultValue}
         onChange={handleChangeValue}
       />
       <p className="error-field mt-1">{error}</p>

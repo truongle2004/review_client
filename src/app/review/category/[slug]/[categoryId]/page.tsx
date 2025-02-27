@@ -28,7 +28,7 @@ const CategoryPage = () => {
       fetchProductByCategoryAPI({
         page,
         limit: AppConstant.PAGE_SIZE,
-        categoryId: params.categoryId,
+        categoryId: Number(params.categoryId),
       }),
     enabled: !!params.categoryId && !!page,
   });

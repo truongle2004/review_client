@@ -14,8 +14,8 @@ type ValuePiece = Date | null;
 export type Value = ValuePiece | [ValuePiece, ValuePiece];
 
 export interface Timestamp {
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | null;
+  updatedAt: Date | null;
   deleteAt: Date | null;
 }
 
@@ -39,9 +39,10 @@ export interface Image extends Timestamp {
   alt: string;
 }
 
-export interface Product {
+export interface Product extends Timestamp {
   id: number;
   category: Category;
+  description: string;
   images: Image[];
   rating: number;
   title: string;
