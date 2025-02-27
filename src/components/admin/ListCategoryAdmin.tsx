@@ -5,7 +5,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 const ListCategoryAdmin = () => {
-  const { data: listCategory } = useQuery({
+  const { data: listCategory, isLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: () => fetchAllCategoryAPI(),
   });
@@ -30,12 +30,20 @@ const ListCategoryAdmin = () => {
     addNewCategoryMutation(name);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
+  }
+
   return (
     <div>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-row gap-3">
         <input
           type="text"
-          placeholder="Type here"
+          placeholder="Add new category"
           className="input input-bordered w-full max-w-xs"
           {...register('name')}
         />
@@ -51,6 +59,7 @@ const ListCategoryAdmin = () => {
               <th></th>
               <th>Name</th>
               <th>Job</th>
+              <th>Created At</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -61,6 +70,9 @@ const ListCategoryAdmin = () => {
                 <th>{category.name}</th>
                 <td>Cy Ganderton</td>
                 <td>Quality Control Specialist</td>
+                <td>
+                  {category.createdAt ? new Date(category.createdAt).toLocaleDateString() : 'N/A'}
+                </td>
                 <td>
                   <button className="btn btn-error btn-sm">delete</button>
                 </td>

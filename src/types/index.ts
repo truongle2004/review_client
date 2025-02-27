@@ -39,7 +39,7 @@ export interface Image extends Timestamp {
   alt: string;
 }
 
-export interface Product {
+export interface Product extends Timestamp {
   id: number;
   category: Category;
   description: string;

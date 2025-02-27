@@ -1,14 +1,10 @@
 'use client';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBox, faList } from '@fortawesome/free-solid-svg-icons';
-
 import ListCategoryAdmin from '@/components/admin/ListCategoryAdmin';
 import ListProductAdmin from '@/components/admin/ListProductAdmin';
-import { fetchProductAPI } from '@/services/product';
-import { AppConstant } from '@/utils/AppConstant';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { faBox, faList } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState } from 'react';
 
 const drawerItems = [
   {
@@ -26,39 +22,19 @@ const drawerItems = [
 ];
 
 const AdminPage = () => {
-  const [page, setPage] = useState(AppConstant.FIRST_PAGE);
   const [drawerIndex, setDrawerIndex] = useState(
     localStorage.getItem('drawerIndex') ? Number(localStorage.getItem('drawerIndex')) : 0
   );
-
-  // Fetch product data only when viewing "List Product"
-  const { data } = useQuery({
-    queryKey: ['products', page],
-    queryFn: () =>
-      fetchProductAPI({
-        page,
-        limit: AppConstant.PAGE_SIZE,
-      }),
-    enabled: drawerIndex === 0, // Only fetch when "List Product" is active
-  });
 
   const handleSetDrawerIndex = (index: number) => {
     setDrawerIndex(index);
     localStorage.setItem('drawerIndex', index.toString());
   };
 
-  // useEffect(() => {
-  //   const drawerIndex = Number(localStorage.getItem('drawerIndex'));
-  //   if (drawerIndex) {
-  //     setDrawerIndex(drawerIndex);
-  //   }
-  // }, []);
-  //
   return (
     <div className="drawer lg:drawer-open">
       <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
-        {/* Dynamically render selected component */}
         {drawerItems[drawerIndex]?.component}
 
         <label htmlFor="my-drawer-2" className="btn btn-primary drawer-button lg:hidden">

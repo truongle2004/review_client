@@ -6,16 +6,39 @@ import { fetchProductDetailAPI } from '@/services/product';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 // TODO: get detail product here
 // TODO: fetch all reviews
 const ListingReviewPage = () => {
   const params = useParams<{ id: string }>();
+
+  const [showReadMore, setShowReadMore] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['product', params.id],
     queryFn: () => fetchProductDetailAPI({ id: Number(params.id) }),
     enabled: !!params.id,
   });
+
+  const handleToggleShowReadMore = () => {
+    setShowReadMore(!showReadMore);
+  };
+
+  if (showReadMore) {
+    return (
+      <section className="">
+        <h4 className="mb-0 text-center">Description</h4>
+        <hr />
+        <p
+          className="lead link-no-decoration"
+          style={{ whiteSpace: 'pre-wrap', padding: '10px 20px' }}
+          dangerouslySetInnerHTML={{
+            __html: data?.description as string,
+          }}
+        ></p>
+      </section>
+    );
+  }
 
   return (
     <div className="flex flex-row flex-wrap gap-6 p-4 container mx-auto bg-base-200">
@@ -27,7 +50,9 @@ const ListingReviewPage = () => {
             <RatingDisplay rating={data?.rating as number} />
             <div className="card-actions justify-end">
               <button className="btn btn-primary">Write a review</button>
-              <button className="btn btn-outline">Read more</button>
+              <button className="btn btn-outline" onClick={handleToggleShowReadMore}>
+                Read more
+              </button>
             </div>
           </div>
         </div>

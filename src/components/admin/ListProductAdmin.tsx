@@ -48,7 +48,6 @@ const ListProductAdmin = () => {
     },
   });
 
-  // TODO: handle params
   const { mutate: fetchListProductByCategoryMutation } = useMutation({
     mutationFn: () =>
       fetchProductByCategoryAPI({
@@ -139,7 +138,11 @@ const ListProductAdmin = () => {
   }, []);
 
   if (isPending) {
-    return <span className="loading loading-spinner loading-sm"></span>;
+    return (
+      <div className="flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
   }
 
   return (
@@ -214,6 +217,7 @@ const ListProductAdmin = () => {
               </th>
               <th>Name</th>
               <th>Job</th>
+              <th>Created At</th>
               <th>Favorite Color</th>
               <th>Actions</th>
             </tr>
@@ -249,6 +253,7 @@ const ListProductAdmin = () => {
                   <br />
                   <span className="badge badge-ghost badge-sm">Desktop Support Technician</span>
                 </td>
+                <td>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</td>
                 <td>Purple</td>
                 <th className="flex gap-2">
                   <button
