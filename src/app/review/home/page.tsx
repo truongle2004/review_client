@@ -19,6 +19,7 @@ const HomePage = () => {
   const [page, setPage] = useState(AppConstant.FIRST_PAGE);
   const [categoryId, setCategoryId] = useState(0);
   const [listProduct, setListProduct] = useState<Product[]>([]);
+  const [rating, setRating] = useState(0);
   const [paginateData, setPaginateData] = useState<{
     page: number;
     limit: number;
@@ -101,12 +102,16 @@ const HomePage = () => {
     fetchListProductMutation();
   }, []);
 
+  const handleRatingChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setRating(Number(e.target.value));
+  };
+
   return (
     <div className="flex justify-center items-start min-h-screen mb-10">
       <Menu />
       <main className="w-1/2">
         <div className="flex flex-row justify-between mb-10">
-          <div>
+          <div className='flex flex-row w-full items-center'>
             <select
               className="select select-bordered w-full max-w-xs"
               defaultValue={'Default'}
@@ -125,6 +130,23 @@ const HomePage = () => {
                 </option>
               ))}
             </select>
+
+            <div className="flex flex-col items-center gap-4 p-4">
+              <h2 className="text-xl font-bold">Rate from 1 to 100</h2>
+
+              {/* DaisyUI-styled range input */}
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={rating}
+                onChange={handleRatingChange}
+                className="range range-primary w-full max-w-xs"
+              />
+
+              {/* Display the current rating */}
+              <div className="badge badge-lg badge-secondary">{rating}</div>
+            </div>
           </div>
           <div>
             <button className="btn btn-primary btn-outline" onClick={handleSubmitFilter}>
