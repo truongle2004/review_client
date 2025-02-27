@@ -3,36 +3,73 @@
 import ListProduct from '@/components/ListProduct';
 import Menu from '@/components/Menu';
 import Paginate from '@/components/Paginate';
-import { fetchProductAPI } from '@/services/product';
+import { fetchAllCategoryAPI } from '@/services/category';
+import { fetchProductAPI, fetchProductByCategoryAPI } from '@/services/product';
+import { Product } from '@/types';
 import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
-import { useQuery } from '@tanstack/react-query';
+import { ToastWarning } from '@/utils/toastify';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 
 const HomePage = () => {
   const router = useRouter();
   const [selectData, setSelectData] = useState('');
   const [page, setPage] = useState(AppConstant.FIRST_PAGE);
+  const [categoryId, setCategoryId] = useState(0);
+  const [listProduct, setListProduct] = useState<Product[]>([]);
+  const [paginateData, setPaginateData] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+  } | null>({
+    page: AppConstant.FIRST_PAGE,
+    limit: AppConstant.PAGE_SIZE,
+    total: 0,
+  });
 
   const onClickCard = (id: string | number, title: string) => {
     const slug = convertToSlug(title);
     router.push(`/review/listings/${id}/${slug}`);
   };
 
-  const {
-    data: listProduct,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['products', page, AppConstant.PAGE_SIZE],
-    queryFn: () =>
+  const { mutate: fetchListProductMutation, isPending } = useMutation({
+    mutationFn: () =>
       fetchProductAPI({
-        page: page,
+        page,
         limit: AppConstant.PAGE_SIZE,
       }),
-    // check if AppConstant.FIRST_PAGE and AppConstant.PAGE_SIZE is not null
-    enabled: !!page,
+    onSuccess: (data) => {
+      setPaginateData({
+        page: data.page,
+        limit: data.limit,
+        total: data.total,
+      });
+      setListProduct(data.data);
+    },
+  });
+
+  const { mutate: fetchListProductByCategoryMutation } = useMutation({
+    mutationFn: () =>
+      fetchProductByCategoryAPI({
+        page,
+        limit: AppConstant.PAGE_SIZE,
+        categoryId: categoryId as number,
+      }),
+    onSuccess: (data) => {
+      setPaginateData({
+        page: data.page,
+        limit: data.limit,
+        total: data.total,
+      });
+      setListProduct(data.data);
+    },
+  });
+
+  const { data: listCategory } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => fetchAllCategoryAPI(),
   });
 
   const handleSetSelectData = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -42,44 +79,66 @@ const HomePage = () => {
     // TODO: use lodash debound and call api
   };
 
+  const handleSubmitFilter = () => {
+    if (categoryId === null) {
+      ToastWarning('Please select conditions filter', {});
+      return;
+    }
+    setListProduct([]);
+    setPage(AppConstant.FIRST_PAGE);
+    fetchListProductByCategoryMutation();
+  };
+
+  const handleSetSelectCategory = (e: ChangeEvent<HTMLSelectElement>) => {
+    setCategoryId(Number(e.target.value));
+  };
+
   const handlePageChange = (page: number) => {
     setPage(page);
   };
 
-  if (isLoading)
-    return (
-      <p className="flex justify-center items-center h-screen">
-        <span className="loading loading-spinner loading-md"></span>
-      </p>
-    );
-
-  if (error) return <p>Error: {error.message}</p>;
+  useEffect(() => {
+    fetchListProductMutation();
+  }, []);
 
   return (
     <div className="flex justify-center items-start min-h-screen mb-10">
       <Menu />
       <main className="w-1/2">
-        <div className="flex items-center mb-5">
-          <h5 className="font-semibold">Sort by:</h5>
-          <select
-            className="select select-bordered w-full max-w-xs ml-2 font-bold"
-            value={selectData}
-            onChange={handleSetSelectData}
-          >
-            <option disabled value="">
-              Who shot first?
-            </option>
-            <option>Han Solo</option>
-            <option>Greedo</option>
-          </select>
+        <div className="flex flex-row justify-between mb-10">
+          <div>
+            <select
+              className="select select-bordered w-full max-w-xs"
+              defaultValue={'Default'}
+              onChange={handleSetSelectCategory}
+            >
+              {!categoryId && (
+                <option value={'Default'} disabled>
+                  {' '}
+                  -- Category --{' '}
+                </option>
+              )}
+
+              {listCategory?.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <button className="btn btn-primary btn-outline" onClick={handleSubmitFilter}>
+              Filter
+            </button>
+          </div>
         </div>
 
-        <ListProduct listProduct={listProduct?.data} onClickCard={onClickCard} />
+        <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
 
         <Paginate
-          limit={listProduct?.limit as number}
-          total={listProduct?.total as number}
-          page={listProduct?.page as number}
+          limit={paginateData?.page as number}
+          total={paginateData?.total as number}
+          page={paginateData?.page as number}
           onPageChange={handlePageChange}
         />
       </main>
