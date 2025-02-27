@@ -1,12 +1,24 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const Navbar = () => {
   const [toggleDropdown, setToggleDropdown] = useState(false);
 
+  const router = useRouter();
+
   const handleToggleDropdown = (e: React.ChangeEvent<HTMLInputElement>) => {
     setToggleDropdown(e.target.value.length > 0);
+  };
+
+  const handleRedirectLoginPage = () => {
+    setToggleDropdown(false);
+    router.push('/review/login');
+  };
+
+  const handleLogout = () => {
+    handleRedirectLoginPage();
   };
 
   return (
@@ -62,6 +74,9 @@ const Navbar = () => {
             </li>
             <li>
               <a>Logout</a>
+            </li>
+            <li onClick={handleRedirectLoginPage}>
+              <a>Login</a>
             </li>
           </ul>
         </div>
