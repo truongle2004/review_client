@@ -1,7 +1,7 @@
 'use client';
 
 import { fetchAllCategoryAPI } from '@/services/category';
-import { deleteProductAPI, fetchProductAPI, fetchProductByCategoryAPI } from '@/services/product';
+import { deleteProductAPI, fetchProductAPI, fetchProductPaginationAPI } from '@/services/product';
 import type { Product } from '@/types';
 import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
@@ -28,7 +28,7 @@ const ListProductAdmin = () => {
     limit: AppConstant.PAGE_SIZE,
     total: 0,
   });
-  const [rating, setRating] = useState(1);
+  const [rating, setRating] = useState(100);
 
   const router = useRouter();
 
@@ -50,10 +50,11 @@ const ListProductAdmin = () => {
 
   const { mutate: fetchListProductByCategoryMutation } = useMutation({
     mutationFn: () =>
-      fetchProductByCategoryAPI({
+      fetchProductPaginationAPI({
         page,
         limit: AppConstant.PAGE_SIZE,
         categoryId: categoryId as number,
+        rating,
       }),
     onSuccess: (data) => {
       setPaginateData({

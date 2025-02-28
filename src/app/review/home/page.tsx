@@ -1,10 +1,9 @@
 'use client';
 
 import ListProduct from '@/components/ListProduct';
-import Menu from '@/components/Menu';
 import Paginate from '@/components/Paginate';
 import { fetchAllCategoryAPI } from '@/services/category';
-import { fetchProductAPI, fetchProductByCategoryAPI } from '@/services/product';
+import { fetchProductAPI, fetchProductPaginationAPI } from '@/services/product';
 import { Product } from '@/types';
 import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
@@ -19,7 +18,8 @@ const HomePage = () => {
   const [page, setPage] = useState(AppConstant.FIRST_PAGE);
   const [categoryId, setCategoryId] = useState(0);
   const [listProduct, setListProduct] = useState<Product[]>([]);
-  const [rating, setRating] = useState(0);
+  const [sortBy, setSortBy] = useState<string>('ASC');
+  const [rating, setRating] = useState(100);
   const [paginateData, setPaginateData] = useState<{
     page: number;
     limit: number;
@@ -35,28 +35,31 @@ const HomePage = () => {
     router.push(`/review/listings/${id}/${slug}`);
   };
 
-  const { mutate: fetchListProductMutation, isPending } = useMutation({
-    mutationFn: () =>
-      fetchProductAPI({
-        page,
-        limit: AppConstant.PAGE_SIZE,
-      }),
-    onSuccess: (data) => {
-      setPaginateData({
-        page: data.page,
-        limit: data.limit,
-        total: data.total,
-      });
-      setListProduct(data.data);
-    },
-  });
+  // const { mutate: fetchListProductMutation } = useMutation({
+  //   mutationFn: () =>
+  //     fetchProductAPI({
+  //       page,
+  //       limit: AppConstant.PAGE_SIZE,
+  //     }),
+  //   onSuccess: (data) => {
+  //     setPaginateData({
+  //       page: data.page,
+  //       limit: data.limit,
+  //       total: data.total,
+  //     });
+  //     setListProduct(data.data);
+  //     window.scrollTo(0, 0);
+  //   },
+  // });
 
-  const { mutate: fetchListProductByCategoryMutation } = useMutation({
+  const { mutate: fetchListProductPaginationMutation } = useMutation({
     mutationFn: () =>
-      fetchProductByCategoryAPI({
+      fetchProductPaginationAPI({
         page,
         limit: AppConstant.PAGE_SIZE,
         categoryId: categoryId as number,
+        rating,
+        sortBy,
       }),
     onSuccess: (data) => {
       setPaginateData({
@@ -65,6 +68,8 @@ const HomePage = () => {
         total: data.total,
       });
       setListProduct(data.data);
+
+      window.scrollTo(0, 0);
     },
   });
 
@@ -81,13 +86,12 @@ const HomePage = () => {
   };
 
   const handleSubmitFilter = () => {
-    if (categoryId === null) {
+    if (categoryId === null && rating === 100 && sortBy === '') {
       ToastWarning('Please select conditions filter', {});
       return;
     }
-    setListProduct([]);
     setPage(AppConstant.FIRST_PAGE);
-    fetchListProductByCategoryMutation();
+    fetchListProductPaginationMutation();
   };
 
   const handleSetSelectCategory = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -96,74 +100,99 @@ const HomePage = () => {
 
   const handlePageChange = (page: number) => {
     setPage(page);
+    setListProduct([]);
+
+    fetchListProductPaginationMutation();
   };
 
-  useEffect(() => {
-    fetchListProductMutation();
-  }, []);
+  const handleSetSortBy = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value);
+  };
 
   const handleRatingChange = (e: ChangeEvent<HTMLInputElement>) => {
     setRating(Number(e.target.value));
   };
 
+  useEffect(() => {
+    fetchListProductPaginationMutation();
+  }, []);
+
   return (
-    <div className="flex justify-center items-start min-h-screen mb-10">
-      <Menu />
-      <main className="w-1/2">
-        <div className="flex flex-row justify-between mb-10">
-          <div className='flex flex-row w-full items-center'>
+    <div className="flex justify-center items-start mb-10">
+      <div className="flex w-full max-w-5xl">
+        {/* Sidebar (Left) */}
+        <aside className="w-1/4 p-4 bg-gray-800 max-h-fit">
+          <h2 className="text-xl font-bold mb-6">Filters</h2>
+
+          {/* Category Select */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Category</label>
             <select
-              className="select select-bordered w-full max-w-xs"
+              className="select select-bordered w-full"
               defaultValue={'Default'}
               onChange={handleSetSelectCategory}
             >
               {!categoryId && (
                 <option value={'Default'} disabled>
-                  {' '}
-                  -- Category --{' '}
+                  -- Category --
                 </option>
               )}
-
               {listCategory?.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
                 </option>
               ))}
             </select>
-
-            <div className="flex flex-col items-center gap-4 p-4">
-              <h2 className="text-xl font-bold">Rate from 1 to 100</h2>
-
-              {/* DaisyUI-styled range input */}
-              <input
-                type="range"
-                min="1"
-                max="100"
-                value={rating}
-                onChange={handleRatingChange}
-                className="range range-primary w-full max-w-xs"
-              />
-
-              {/* Display the current rating */}
-              <div className="badge badge-lg badge-secondary">{rating}</div>
-            </div>
           </div>
-          <div>
-            <button className="btn btn-primary btn-outline" onClick={handleSubmitFilter}>
-              Filter
-            </button>
+
+          {/* Sort By Select */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Sort By</label>
+            <select
+              className="select select-bordered w-full"
+              defaultValue={'Default'}
+              onChange={handleSetSortBy}
+            >
+              <option value={'Default'} disabled>
+                -- Sort by --
+              </option>
+              <option value={'ASC'}>A to Z</option>
+              <option value={'DESC'}>Z to A</option>
+            </select>
           </div>
-        </div>
 
-        <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
+          {/* Rating Range */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Rating (1-100)</label>
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={rating}
+              onChange={handleRatingChange}
+              className="range range-primary w-full"
+            />
+            <div className="badge badge-lg badge-secondary mt-2">{rating}</div>
+          </div>
 
-        <Paginate
-          limit={paginateData?.page as number}
-          total={paginateData?.total as number}
-          page={paginateData?.page as number}
-          onPageChange={handlePageChange}
-        />
-      </main>
+          {/* Filter Button */}
+          <button className="btn btn-success btn-outline w-full" onClick={handleSubmitFilter}>
+            Apply Filters
+          </button>
+        </aside>
+
+        {/* Main Content (Right) */}
+        <main className="w-3/4 p-4">
+          <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
+
+          <Paginate
+            limit={paginateData?.limit as number}
+            total={paginateData?.total as number}
+            page={paginateData?.page as number}
+            onPageChange={handlePageChange}
+          />
+        </main>
+      </div>
     </div>
   );
 };

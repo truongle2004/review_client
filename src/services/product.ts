@@ -17,19 +17,25 @@ export const fetchProductAPI = async ({
   });
 };
 
-export const fetchProductByCategoryAPI = async ({
+export const fetchProductPaginationAPI = async ({
   page,
   limit,
   categoryId,
+  rating,
+  sortBy,
 }: {
   page: number;
   limit: number;
   categoryId: number;
+  rating?: number;
+  sortBy?: string;
 }): Promise<ProductPaginateResponse> => {
   return await axiosInstance.get(env.SERVER_URL + `/v1/product/category/${categoryId}`, {
     params: {
       page,
       limit,
+      rating,
+      sortBy,
     },
   });
 };

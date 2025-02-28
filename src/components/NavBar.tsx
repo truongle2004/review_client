@@ -13,8 +13,9 @@ const Navbar = () => {
   };
 
   const handleRedirectLoginPage = () => {
-    setToggleDropdown(false);
     router.push('/review/login');
+
+    setToggleDropdown(false);
   };
 
   const handleLogout = () => {

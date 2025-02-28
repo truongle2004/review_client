@@ -3,7 +3,7 @@
 import ListProduct from '@/components/ListProduct';
 import Menu from '@/components/Menu';
 import Paginate from '@/components/Paginate';
-import { fetchProductByCategoryAPI } from '@/services/product';
+import { fetchProductPaginationAPI } from '@/services/product';
 import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
 import { useQuery } from '@tanstack/react-query';
@@ -25,7 +25,7 @@ const CategoryPage = () => {
   } = useQuery({
     queryKey: ['category', params.categoryId, page],
     queryFn: () =>
-      fetchProductByCategoryAPI({
+      fetchProductPaginationAPI({
         page,
         limit: AppConstant.PAGE_SIZE,
         categoryId: Number(params.categoryId),

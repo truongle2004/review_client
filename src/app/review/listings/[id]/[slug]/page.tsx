@@ -26,7 +26,7 @@ const ListingReviewPage = () => {
 
   if (showReadMore) {
     return (
-      <section className="">
+      <section className="w-1/2 mx-auto">
         <h4 className="mb-0 text-center">Description</h4>
         <hr />
         <p
