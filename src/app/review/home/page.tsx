@@ -1,198 +1,131 @@
 'use client';
 
-import ListProduct from '@/components/ListProduct';
-import Paginate from '@/components/Paginate';
 import { fetchAllCategoryAPI } from '@/services/category';
-import { fetchProductAPI, fetchProductPaginationAPI } from '@/services/product';
-import { Product } from '@/types';
-import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
-import { ToastWarning } from '@/utils/toastify';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 
 const HomePage = () => {
-  const router = useRouter();
-  const [selectData, setSelectData] = useState('');
-  const [page, setPage] = useState(AppConstant.FIRST_PAGE);
-  const [categoryId, setCategoryId] = useState(0);
-  const [listProduct, setListProduct] = useState<Product[]>([]);
-  const [sortBy, setSortBy] = useState<string>('ASC');
-  const [rating, setRating] = useState(100);
-  const [paginateData, setPaginateData] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-  } | null>({
-    page: AppConstant.FIRST_PAGE,
-    limit: AppConstant.PAGE_SIZE,
-    total: 0,
-  });
-
-  const onClickCard = (id: string | number, title: string) => {
-    const slug = convertToSlug(title);
-    router.push(`/review/listings/${id}/${slug}`);
-  };
-
-  // const { mutate: fetchListProductMutation } = useMutation({
-  //   mutationFn: () =>
-  //     fetchProductAPI({
-  //       page,
-  //       limit: AppConstant.PAGE_SIZE,
-  //     }),
-  //   onSuccess: (data) => {
-  //     setPaginateData({
-  //       page: data.page,
-  //       limit: data.limit,
-  //       total: data.total,
-  //     });
-  //     setListProduct(data.data);
-  //     window.scrollTo(0, 0);
-  //   },
-  // });
-
-  const { mutate: fetchListProductPaginationMutation } = useMutation({
-    mutationFn: () =>
-      fetchProductPaginationAPI({
-        page,
-        limit: AppConstant.PAGE_SIZE,
-        categoryId: categoryId as number,
-        rating,
-        sortBy,
-      }),
-    onSuccess: (data) => {
-      setPaginateData({
-        page: data.page,
-        limit: data.limit,
-        total: data.total,
-      });
-      setListProduct(data.data);
-
-      window.scrollTo(0, 0);
-    },
-  });
-
-  const { data: listCategory } = useQuery({
+  const { data: categories, isLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => fetchAllCategoryAPI(),
+    queryFn: fetchAllCategoryAPI,
   });
-
-  const handleSetSelectData = (e: ChangeEvent<HTMLSelectElement>) => {
-    e.preventDefault();
-    setSelectData(e.target.value);
-
-    // TODO: use lodash debound and call api
-  };
-
-  const handleSubmitFilter = () => {
-    if (categoryId === null && rating === 100 && sortBy === '') {
-      ToastWarning('Please select conditions filter', {});
-      return;
-    }
-    setPage(AppConstant.FIRST_PAGE);
-    fetchListProductPaginationMutation();
-  };
-
-  const handleSetSelectCategory = (e: ChangeEvent<HTMLSelectElement>) => {
-    setCategoryId(Number(e.target.value));
-  };
-
-  const handlePageChange = (page: number) => {
-    setPage(page);
-    setListProduct([]);
-
-    fetchListProductPaginationMutation();
-  };
-
-  const handleSetSortBy = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSortBy(e.target.value);
-  };
-
-  const handleRatingChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setRating(Number(e.target.value));
-  };
-
-  useEffect(() => {
-    fetchListProductPaginationMutation();
-  }, []);
 
   return (
-    <div className="flex justify-center items-start mb-10">
-      <div className="flex w-full max-w-5xl">
-        {/* Sidebar (Left) */}
-        <aside className="w-1/4 p-4 bg-gray-800 max-h-fit">
-          <h2 className="text-xl font-bold mb-6">Filters</h2>
+    <div className="relative w-full min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+          Welcome to Review Hub
+        </h1>
+        <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+          Discover authentic reviews, share your insights, and uncover top recommendations for
+          products and services that matter most to you.
+        </p>
+        <Link
+          href="/reviews"
+          className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full
+                    hover:bg-indigo-700 transition-all duration-300 text-lg font-semibold shadow-md"
+        >
+          Explore Reviews
+        </Link>
+      </section>
 
-          {/* Category Select */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <select
-              className="select select-bordered w-full"
-              defaultValue={'Default'}
-              onChange={handleSetSelectCategory}
-            >
-              {!categoryId && (
-                <option value={'Default'} disabled>
-                  -- Category --
-                </option>
-              )}
-              {listCategory?.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort By Select */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Sort By</label>
-            <select
-              className="select select-bordered w-full"
-              defaultValue={'Default'}
-              onChange={handleSetSortBy}
-            >
-              <option value={'Default'} disabled>
-                -- Sort by --
-              </option>
-              <option value={'ASC'}>A to Z</option>
-              <option value={'DESC'}>Z to A</option>
-            </select>
-          </div>
-
-          {/* Rating Range */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Rating (1-100)</label>
+      {/* Search Section */}
+      <section className="container mx-auto px-4 py-16 text-center bg-white shadow-lg rounded-lg max-w-4xl -mt-8">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-3">Know Better, Choose Better</h2>
+        <p className="text-gray-500 mb-6">Reviews by real people, just like you</p>
+        <div className="flex justify-center">
+          <label className="relative flex items-center w-full max-w-md">
             <input
-              type="range"
-              min="1"
-              max="100"
-              value={rating}
-              onChange={handleRatingChange}
-              className="range range-primary w-full"
+              type="text"
+              placeholder="Search reviews..."
+              className="w-full rounded-full py-3 pl-5 pr-12 text-gray-700 border border-gray-300
+                        focus:ring-2 focus:ring-indigo-500 focus:outline-none transition-all"
             />
-            <div className="badge badge-lg badge-secondary mt-2">{rating}</div>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              className="absolute right-4 h-5 w-5 text-gray-500"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </label>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-3xl font-semibold text-gray-800 text-center mb-10">
+          Explore Categories
+        </h2>
+        {isLoading ? (
+          <div className="text-center text-gray-500">Loading categories...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories?.map((category) => (
+              <Link
+                key={category.id}
+                href={`/review/${category.id}/${convertToSlug(category.name)}`}
+                className="group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300"
+              >
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                    {category.name || 'Unnamed Category'}
+                  </h3>
+                  <p className="text-gray-600 line-clamp-2">
+                    {category.description || 'Discover reviews in this category.'}
+                  </p>
+                  <span className="inline-block mt-3 text-indigo-600 font-medium group-hover:underline">
+                    View Reviews
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
+        )}
+      </section>
 
-          {/* Filter Button */}
-          <button className="btn btn-success btn-outline w-full" onClick={handleSubmitFilter}>
-            Apply Filters
-          </button>
-        </aside>
+      {/* Preview Section */}
+      <section className="container mx-auto px-4 py-20 bg-gray-100">
+        <h2 className="text-3xl font-semibold text-gray-800 text-center mb-10">Why Review Hub?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">Product Reviews</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Explore in-depth reviews on the latest products, from tech gadgets to everyday
+              essentials.
+            </p>
+          </div>
+          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">User Stories</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Dive into authentic experiences shared by our vibrant community of reviewers.
+            </p>
+          </div>
+          <div className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-3">Rate & Review</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Share your opinions and guide others toward smarter decisions.
+            </p>
+          </div>
+        </div>
+      </section>
 
-        {/* Main Content (Right) */}
-        <main className="w-3/4 p-4">
-          <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
-
-          <Paginate
-            limit={paginateData?.limit as number}
-            total={paginateData?.total as number}
-            page={paginateData?.page as number}
-            onPageChange={handlePageChange}
-          />
-        </main>
-      </div>
+      {/* Footer Teaser */}
+      <section className="container mx-auto px-4 py-12 text-center border-t border-gray-200">
+        <p className="text-gray-600">
+          Join thousands of users making informed choices every day.{' '}
+          <Link href="/signup" className="text-indigo-600 hover:underline font-medium">
+            Get Started
+          </Link>
+        </p>
+      </section>
     </div>
   );
 };
