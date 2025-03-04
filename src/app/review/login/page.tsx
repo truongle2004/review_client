@@ -4,11 +4,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { login_schema } from '@/schema';
+import Image from 'next/image';
+import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
+import { useMutation } from '@tanstack/react-query';
+import { loginAccountAPI } from '@/services/auth';
+import { ToastSuccess } from '@/utils/toastify';
+import type { LoginInfo } from '@/types';
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
-  const onSubmit = (data: any) => {
-    const { email, password } = data;
-    console.log(email, password);
+  const router = useRouter();
+  const { mutate: loginAccountMutation } = useMutation({
+    mutationFn: loginAccountAPI,
+    onSuccess: (data) => {
+      ToastSuccess(data._message);
+      router.push('/review/home');
+    },
+  });
+
+  const onSubmit = (data: LoginInfo) => {
+    loginAccountMutation(data);
   };
 
   const {
@@ -24,52 +39,80 @@ const LoginPage = () => {
   });
 
   return (
-    <div className="flex flex-col items-center mt-10 mb-10">
-      <h1 className="text-3xl font-bold mb-6">LOGIN</h1>
-      <form
-        className="w-1/3 bg-base-200 p-6 rounded-lg shadow-md"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="form-control mb-4">
-          <label className="label" htmlFor="email">
-            <span className="label-text">Email</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            placeholder="Email"
-            className="input input-bordered w-full"
-            required
-            {...register('email')}
-          />
+    <div className="min-h-screen flex">
+      {/* Background Image Container */}
+      <div className="hidden lg:block w-1/2 relative">
+        <Image
+          src={BgImage}
+          alt="Background"
+          layout="fill"
+          objectFit="cover"
+          quality={100}
+          className="absolute inset-0"
+        />
+      </div>
+
+      {/* Login Form Container */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Welcome Back</h1>
+            <p className="mt-2 text-sm text-gray-600">Please sign in to your account</p>
+          </div>
+
+          <form className="bg-white p-6 rounded-xl shadow-lg" onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-6">
+              <div className="form-control">
+                <label className="label" htmlFor="email">
+                  <span className="label-text font-medium text-gray-700">Email</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="Enter your email"
+                  className="input input-bordered w-full rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                  {...register('email')}
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label" htmlFor="password">
+                  <span className="label-text font-medium text-gray-700">Password</span>
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  placeholder="Enter your password"
+                  className="input input-bordered w-full rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                  {...register('password')}
+                />
+                <div className="text-right mt-2">
+                  <a href="#" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary w-full rounded-md py-3 text-base font-medium transition duration-200 hover:bg-primary-dark"
+              >
+                Sign In
+              </button>
+            </div>
+          </form>
+
+          <div className="text-center text-sm">
+            <p className="text-gray-600">
+              Don't have an account?{' '}
+              <Link href="register" className="text-primary font-medium hover:underline">
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
-
-        <div className="form-control mb-4">
-          <label className="label" htmlFor="password">
-            <span className="label-text">Password</span>
-          </label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Password"
-            className="input input-bordered w-full"
-            required
-            {...register('password')}
-          />
-        </div>
-
-        <button type="submit" className="btn btn-primary w-full">
-          Login
-        </button>
-      </form>
-
-      <div className="mt-4">
-        <p>
-          Don't have an account?{' '}
-          <Link href="register" className="text-primary">
-            Register
-          </Link>
-        </p>
       </div>
     </div>
   );

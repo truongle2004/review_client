@@ -16,11 +16,19 @@ axiosInstance.interceptors.request.use((config) => {
 });
 
 axiosInstance.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    if (error.response.status === 401) {
-      window.location.href = '/login';
+  (response) => {
+    const data = response.data;
+
+    if (data.accesstoken) {
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.accesstoken}`;
     }
+
+    return data;
+  },
+  (error) => {
+    // if (error.response.status === 401) {
+    //   window.location.href = '/login';
+    // }
     return Promise.reject(error);
   }
 );

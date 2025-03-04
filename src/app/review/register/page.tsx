@@ -1,56 +1,26 @@
 'use client';
 
-import { getCountries } from '@/services/country_api';
+import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import PhoneInput from 'react-phone-number-input';
-import Select from 'react-select';
 import Link from 'next/link';
 import { register_schema } from '@/schema';
-import { CountryOption } from '@/types';
+import { RegisterInfo } from '@/types';
+import Image from 'next/image';
+import { useMutation } from '@tanstack/react-query';
+import { registerAccountAPI } from '@/services/auth';
+import { ToastSuccess } from '@/utils/toastify';
+import { useRouter } from 'next/navigation';
 
-// Define TypeScript types for country options
 const RegisterPage = () => {
-  const onSubmit = (data: any) => {
-    const { firstName, lastName, username, email, password, confirmPassword } = data;
-    const country = selectedCountry?.value;
-    const registerInfo = {
-      firstName,
-      lastName,
-      username,
-      email,
-      password,
-      confirmPassword,
-      country,
-      phoneNumber,
-    };
-
-    // TODO: do something
-  };
-
-  const [countries, setCountries] = useState([]);
-  const [selectedCountry, setSelectedCountry] = useState<CountryOption | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-
-  const fetchCountriesApi = async () => {
-    const data = await getCountries();
-    setCountries(data.countries);
-    setSelectedCountry(data.userSelectValue);
-  };
-
-  useEffect(() => {
-    fetchCountriesApi();
-  }, []);
+  const router = useRouter();
 
   const {
+    handleSubmit,
     register,
     formState: { errors },
-    handleSubmit,
   } = useForm({
     defaultValues: {
-      firstName: '',
-      lastName: '',
       username: '',
       email: '',
       password: '',
@@ -59,112 +29,141 @@ const RegisterPage = () => {
     resolver: zodResolver(register_schema),
   });
 
+  const { mutateAsync: registerAccountMutation } = useMutation({
+    mutationFn: registerAccountAPI,
+    onSuccess: (data) => {
+      ToastSuccess(data._message);
+      ToastSuccess('Please login again!');
+      router.push('/review/login');
+    },
+  });
+
+  const onSubmit = (data: RegisterInfo) => {
+    registerAccountMutation(data);
+  };
+
+  // const [countries, setCountries] = useState([]);
+  // const [selectedCountry, setSelectedCountry] = useState<CountryOption | null>(null);
+  // const [phoneNumber, setPhoneNumber] = useState('');
+
+  // const fetchCountriesApi = async () => {
+  //   const data = await getCountries();
+  //   setCountries(data.countries);
+  //   setSelectedCountry(data.userSelectValue);
+  // };
+
+  // useEffect(() => {
+  //   fetchCountriesApi();
+  // }, []);
+
   return (
-    <div className="flex flex-col items-center mt-10 mb-10">
-      <h1 className="text-3xl font-bold mb-6">REGISTER</h1>
-      <form
-        className="w-1/3 bg-base-200 p-6 rounded-lg shadow-lg"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="form-control">
-          <label className="label">First Name</label>
-          <input
-            type="text"
-            placeholder="First Name"
-            className="input input-bordered"
-            {...register('firstName')}
-          />
-          {errors.firstName && <p className="text-red-500">{errors.firstName.message}</p>}
-        </div>
+    <div className="min-h-screen relative">
+      {/* Background Image */}
+      <Image
+        src={BgImage}
+        alt="Background"
+        layout="fill"
+        objectFit="cover"
+        quality={100}
+        className="absolute inset-0 z-0 opacity-50"
+      />
 
-        <div className="form-control">
-          <label className="label">Last Name</label>
-          <input
-            type="text"
-            placeholder="Last Name"
-            className="input input-bordered"
-            {...register('lastName')}
-          />
-          {errors.lastName && <p className="text-red-500">{errors.lastName.message}</p>}
-        </div>
+      {/* Form Container */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center py-12 px-10 sm:px-6 lg:px-8">
+        <div className="max-w-2xl w-full space-y-8 bg-white/95 p-8 rounded-xl shadow-2xl backdrop-blur-sm">
+          <div className="text-center">
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Create Account</h1>
+            <p className="mt-2 text-sm text-gray-600">Fill in the details to get started</p>
+          </div>
 
-        <div className="form-control">
-          <label className="label">Username *</label>
-          <input
-            type="text"
-            placeholder="Username"
-            className="input input-bordered"
-            required
-            {...register('username')}
-          />
-        </div>
-        {errors.username && <p className="text-red-500">{errors.username.message}</p>}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium text-gray-700">
+                  <strong>Username *</strong>
+                </span>
+              </label>
+              <input
+                type="text"
+                placeholder="Username"
+                className="input input-bordered w-full rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                required
+                {...register('username')}
+              />
+              {errors.username && (
+                <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
+              )}
+            </div>
 
-        <div className="form-control">
-          <label className="label">Phone *</label>
-          <PhoneInput
-            onChange={(value) => setPhoneNumber(value as string)}
-            className="input input-bordered"
-          />
-        </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium text-gray-700">
+                  <strong>Email *</strong>
+                </span>
+              </label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="input input-bordered w-full rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                required
+                {...register('email')}
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+            </div>
 
-        <div className="form-control">
-          <label className="label">Country</label>
-          <Select
-            options={countries}
-            value={selectedCountry}
-            onChange={setSelectedCountry}
-            className="input-bordered"
-          />
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium text-gray-700">Password *</span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="input input-bordered w-full rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                  {...register('password')}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                )}
+              </div>
 
-        <div className="form-control">
-          <label className="label">Email *</label>
-          <input
-            type="email"
-            placeholder="Email"
-            className="input input-bordered"
-            required
-            {...register('email')}
-          />
-        </div>
-        {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text font-medium text-gray-700">
+                    <strong>Confirm Password *</strong>
+                  </span>
+                </label>
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  className="input input-bordered w-full rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  required
+                  {...register('confirmPassword')}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+                )}
+              </div>
+            </div>
 
-        <div className="form-control">
-          <label className="label">Password *</label>
-          <input
-            type="password"
-            placeholder="Password"
-            className="input input-bordered"
-            required
-            {...register('password')}
-          />
-        </div>
-        {errors.password && <p className="text-red-500">{errors.password.message}</p>}
+            <button
+              type="submit"
+              className="btn btn-primary w-full rounded-md py-3 text-base font-medium transition duration-200 hover:bg-primary-dark"
+            >
+              Create Account
+            </button>
+          </form>
 
-        <div className="form-control">
-          <label className="label">Confirm Password *</label>
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="input input-bordered"
-            required
-            {...register('confirmPassword')}
-          />
+          <div className="text-center text-sm">
+            <p className="text-gray-600">
+              Already have an account?{' '}
+              <Link href="login" className="text-primary font-medium hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
-        {errors.confirmPassword && <p className="text-red-500">{errors.confirmPassword.message}</p>}
-
-        <button type="submit" className="btn btn-primary w-full mt-4">
-          Register
-        </button>
-      </form>
-      <div className="mt-4">
-        <p>
-          Already have an account?{' '}
-          <Link href="login" className="link link-primary">
-            Login
-          </Link>
-        </p>
       </div>
     </div>
   );

@@ -26,8 +26,8 @@ export const profile_schema = z.object({
 
 export const register_schema = z
   .object({
-    firstName: z.string(),
-    lastName: z.string(),
+    // firstName: z.string(),
+    // lastName: z.string(),
     username: z
       .string()
       .nonempty({ message: 'Username is required' })

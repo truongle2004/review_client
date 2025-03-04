@@ -47,3 +47,26 @@ export interface Product extends Timestamp {
   rating: number;
   title: string;
 }
+
+export interface RegisterInfo {
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface LoginInfo {
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  _isSuccess: string;
+  _message: string;
+}
+
+export interface LoginResponse {
+  _isSuccess: string;
+  _message: string;
+  _jwt: string;
+}
