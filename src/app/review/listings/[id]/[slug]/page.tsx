@@ -44,15 +44,14 @@ const ListingReviewPage = () => {
   const { userInfo } = useAuthStore();
   const router = useRouter();
 
+  const handleCloseReadMore = () => setShowReadMore(false);
+  const handleOpenReadMore = () => setShowReadMore(true);
+
   const { data } = useQuery({
     queryKey: ['product', params.id],
     queryFn: () => fetchProductDetailAPI({ id: Number(params.id) }),
     enabled: !!params.id,
   });
-
-  const handleToggleShowReadMore = () => {
-    setShowReadMore(!showReadMore);
-  };
 
   const handleToggleShowWriteReview = () => {
     if (!userInfo.isLoggedIn) {
@@ -60,10 +59,6 @@ const ListingReviewPage = () => {
       router.push('/review/login');
     }
     setShowWriteReview(!showWriteReview);
-  };
-
-  const handleCloseReadMore = () => {
-    setShowReadMore(false);
   };
 
   const handleSubmitReview = (content: string) => {
@@ -83,12 +78,19 @@ const ListingReviewPage = () => {
             <div className="card-body">
               <h2 className="card-title">{data?.title}</h2>
               <RatingDisplay rating={data?.rating as number} />
-              <div className="card-actions justify-end">
-                <button className="btn btn-primary" onClick={handleToggleShowWriteReview}>
+              <div className="card-actions w-full flex flex-row gap-4">
+                <button
+                  className="btn btn-primary btn-sm flex-1 h-16"
+                  onClick={handleToggleShowWriteReview}
+                >
                   {showWriteReview ? 'Close' : 'Write a review'}
                 </button>
-                <button className="btn btn-outline" onClick={handleToggleShowReadMore}>
-                  Read more
+
+                <button
+                  className="btn btn-primary btn-outline btn-sm flex-1 h-16"
+                  onClick={handleOpenReadMore}
+                >
+                  See more
                 </button>
               </div>
             </div>

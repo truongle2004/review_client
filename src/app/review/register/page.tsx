@@ -34,7 +34,11 @@ const RegisterPage = () => {
     onSuccess: (data) => {
       ToastSuccess(data._message);
       ToastSuccess('Please login again!');
-      router.push('/review/login');
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push('/review/login');
+      }
     },
   });
 

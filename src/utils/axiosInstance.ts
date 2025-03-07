@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,6 +23,7 @@ axiosInstance.interceptors.response.use(
 
     if (data.accesstoken) {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.accesstoken}`;
+      sessionStorage.setItem('token', data.accesstoken);
     }
 
     return data;

@@ -1,16 +1,16 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import Link from 'next/link';
 import { login_schema } from '@/schema';
-import Image from 'next/image';
-import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
-import { useMutation } from '@tanstack/react-query';
 import { loginAccountAPI } from '@/services/auth';
-import { ToastSuccess } from '@/utils/toastify';
 import type { LoginInfo } from '@/types';
+import { ToastSuccess } from '@/utils/toastify';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -18,7 +18,11 @@ const LoginPage = () => {
     mutationFn: loginAccountAPI,
     onSuccess: (data) => {
       ToastSuccess(data._message);
-      router.push('/review/home');
+      if (window.history.length > 1) {
+        router.back();
+      } else {
+        router.push('/review/home');
+      }
     },
   });
 
