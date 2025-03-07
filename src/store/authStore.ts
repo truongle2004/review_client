@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 interface UserInfo {
+  isLoggedIn: boolean;
   isAdmin: boolean;
 }
 
@@ -10,7 +11,8 @@ interface AuthStore {
 
 const useAuthStore = create<AuthStore>(() => ({
   userInfo: {
-    isAdmin: true,
+    isLoggedIn: localStorage.getItem('token') ? true : false,
+    isAdmin: false,
   },
 }));
 

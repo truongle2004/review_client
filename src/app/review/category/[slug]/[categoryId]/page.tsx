@@ -54,7 +54,7 @@ const CategoryPage = () => {
   if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <div className="flex justify-center items-start min-h-screen mb-10">
+    <div className="flex justify-center items-start w-1/2 min-h-screen mb-10">
       <Menu />
       <div>
         <ListProduct listProduct={listData?.data} onClickCard={onClickCard} />

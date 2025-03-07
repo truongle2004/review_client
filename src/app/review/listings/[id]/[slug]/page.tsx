@@ -4,9 +4,11 @@ import ImageSlider from '@/components/ImageSlider';
 import RatingDisplay from '@/components/Rating';
 import WriteReview from '@/components/WriteReview';
 import { fetchProductDetailAPI } from '@/services/product';
+import useAuthStore from '@/store/authStore';
+import { ToastWarning } from '@/utils/toastify';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 // Mock review data (you can replace this with a real API fetch later)
@@ -37,7 +39,9 @@ const mockReviews = [
 const ListingReviewPage = () => {
   const params = useParams<{ id: string }>();
   const [showReadMore, setShowReadMore] = useState(false);
-  const [showWriteReview, setShowWriteReview] = useState(true);
+  const [showWriteReview, setShowWriteReview] = useState(false);
+  const { userInfo } = useAuthStore();
+  const router = useRouter();
 
   const { data } = useQuery({
     queryKey: ['product', params.id],
@@ -50,6 +54,10 @@ const ListingReviewPage = () => {
   };
 
   const handleToggleShowWriteReview = () => {
+    if (!userInfo.isLoggedIn) {
+      ToastWarning('You need to login to write a review');
+      router.push('/review/login');
+    }
     setShowWriteReview(!showWriteReview);
   };
 
@@ -84,7 +92,7 @@ const ListingReviewPage = () => {
               <RatingDisplay rating={data?.rating as number} />
               <div className="card-actions justify-end">
                 <button className="btn btn-primary" onClick={handleToggleShowWriteReview}>
-                  Write a review
+                  {showWriteReview ? 'Close' : 'Write a review'}
                 </button>
                 <button className="btn btn-outline" onClick={handleToggleShowReadMore}>
                   Read more

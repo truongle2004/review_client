@@ -1,4 +1,6 @@
 import axios from 'axios';
+import Router from 'next/router';
+import { ToastWarning } from './toastify';
 
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:3000',
@@ -26,9 +28,14 @@ axiosInstance.interceptors.response.use(
     return data;
   },
   (error) => {
-    // if (error.response.status === 401) {
-    //   window.location.href = '/login';
-    // }
+    // TODO: handle refresh token
+    if (error.response.status === 401) {
+      Router.push('/review/login');
+
+      ToastWarning(
+        error.response?.message ? error.response?.message : 'Ban khong co quyen truy cap'
+      );
+    }
     return Promise.reject(error);
   }
 );

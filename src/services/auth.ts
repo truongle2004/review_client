@@ -23,3 +23,7 @@ export const loginAccountAPI = async ({ email, password }: LoginInfo): Promise<L
     password,
   });
 };
+
+export const refreshToken = async () => {
+  return await axiosInstance.post(env.SERVER_URL + '/v1/auth/refresh-token');
+};

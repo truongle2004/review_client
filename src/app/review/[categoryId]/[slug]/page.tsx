@@ -1,6 +1,7 @@
 'use client';
 
 import ListProduct from '@/components/ListProduct';
+import Navbar from '@/components/NavBar';
 import Paginate from '@/components/Paginate';
 import { fetchProductPaginationAPI } from '@/services/product';
 import { Product } from '@/types';
@@ -100,14 +101,16 @@ const CategoryPage = () => {
   }, []);
 
   return (
-    <div className="flex justify-center items-start mb-10">
-      <div className="flex w-full max-w-5xl">
-        {/* Sidebar (Left) */}
-        <aside className="w-1/4 p-4 bg-gray-800 max-h-fit">
-          <h2 className="text-xl font-bold mb-6">Filters</h2>
+    <>
+      <Navbar />
+      <div className="flex justify-center mb-10">
+        <div className="flex w-3/4">
+          {/* Sidebar (Left) */}
+          <aside className="w-1/4 p-4 px-4 bg-gray-800 max-h-fit">
+            <h2 className="text-xl font-bold mb-6">Filters</h2>
 
-          {/* Category Select */}
-          {/* <div className="mb-6">
+            {/* Category Select */}
+            {/* <div className="mb-6">
             <label className="block text-sm font-medium mb-2">Category</label>
             <select
               className="select select-bordered w-full"
@@ -127,55 +130,56 @@ const CategoryPage = () => {
             </select>
           </div> */}
 
-          {/* Sort By Select */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Sort By</label>
-            <select
-              className="select select-bordered w-full"
-              defaultValue={'Default'}
-              onChange={handleSetSortBy}
-            >
-              <option value={'Default'} disabled>
-                -- Sort by --
-              </option>
-              <option value={'ASC'}>A to Z</option>
-              <option value={'DESC'}>Z to A</option>
-            </select>
-          </div>
+            {/* Sort By Select */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Sort By</label>
+              <select
+                className="select select-bordered w-full"
+                defaultValue={'Default'}
+                onChange={handleSetSortBy}
+              >
+                <option value={'Default'} disabled>
+                  -- Sort by --
+                </option>
+                <option value={'ASC'}>A to Z</option>
+                <option value={'DESC'}>Z to A</option>
+              </select>
+            </div>
 
-          {/* Rating Range */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Rating (1-100)</label>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={rating}
-              onChange={handleRatingChange}
-              className="range range-primary w-full"
+            {/* Rating Range */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Rating (1-100)</label>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={rating}
+                onChange={handleRatingChange}
+                className="range range-primary w-full"
+              />
+              <div className="badge badge-lg badge-secondary mt-2">{rating}</div>
+            </div>
+
+            {/* Filter Button */}
+            <button className="btn btn-success btn-outline w-full" onClick={handleSubmitFilter}>
+              Apply Filters
+            </button>
+          </aside>
+
+          {/* Main Content (Right) */}
+          <main className="w-1/2 p-4">
+            <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
+
+            <Paginate
+              limit={paginateData?.limit as number}
+              total={paginateData?.total as number}
+              page={paginateData?.page as number}
+              onPageChange={handlePageChange}
             />
-            <div className="badge badge-lg badge-secondary mt-2">{rating}</div>
-          </div>
-
-          {/* Filter Button */}
-          <button className="btn btn-success btn-outline w-full" onClick={handleSubmitFilter}>
-            Apply Filters
-          </button>
-        </aside>
-
-        {/* Main Content (Right) */}
-        <main className="w-3/4 p-4">
-          <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
-
-          <Paginate
-            limit={paginateData?.limit as number}
-            total={paginateData?.total as number}
-            page={paginateData?.page as number}
-            onPageChange={handlePageChange}
-          />
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

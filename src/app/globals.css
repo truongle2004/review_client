@@ -47,6 +47,11 @@ img {
   object-fit: cover;
 }
 
+h2 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
 /* td { */
 /*   color: #ffc017; */
 /* } */
