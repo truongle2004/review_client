@@ -1,5 +1,6 @@
 'use client';
 
+import Description from '@/components/Description';
 import ImageSlider from '@/components/ImageSlider';
 import RatingDisplay from '@/components/Rating';
 import WriteReview from '@/components/WriteReview';
@@ -66,19 +67,7 @@ const ListingReviewPage = () => {
   };
 
   if (showReadMore) {
-    return (
-      <section className="w-1/2 mx-auto">
-        <h4 className="mb-0 text-center">Description</h4>
-        <hr />
-        <p
-          className="lead link-no-decoration"
-          style={{ whiteSpace: 'pre-wrap', padding: '10px 20px' }}
-          dangerouslySetInnerHTML={{
-            __html: data?.description as string,
-          }}
-        ></p>
-      </section>
-    );
+    return <Description content={data?.description as string} />;
   }
 
   return (
