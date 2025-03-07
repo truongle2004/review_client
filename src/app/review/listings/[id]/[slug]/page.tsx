@@ -62,12 +62,16 @@ const ListingReviewPage = () => {
     setShowWriteReview(!showWriteReview);
   };
 
+  const handleCloseReadMore = () => {
+    setShowReadMore(false);
+  };
+
   const handleSubmitReview = (content: string) => {
     console.log(content);
   };
 
   if (showReadMore) {
-    return <Description content={data?.description as string} />;
+    return <Description content={data?.description as string} handleClose={handleCloseReadMore} />;
   }
 
   return (
