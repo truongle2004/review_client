@@ -167,7 +167,7 @@ const CategoryPage = () => {
           </aside>
 
           {/* Main Content (Right) */}
-          <main className="w-1/2 p-4">
+          <main className="w-full p-4">
             <ListProduct listProduct={listProduct} onClickCard={onClickCard} />
 
             <Paginate

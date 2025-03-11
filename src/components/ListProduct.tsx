@@ -28,7 +28,9 @@ const ListProduct: FC<ListProductProps> = ({ listProduct, onClickCard }) => {
             />
           </figure>
           <div className="card-body p-4 flex flex-col justify-between">
-            <h2 className="card-title text-lg font-semibold text-white truncate">{item.title}</h2>
+            <h2 className="card-title text-lg font-semibold text-white truncate text-wrap">
+              {item.title}
+            </h2>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Rating:</span>
               <span className="text-yellow-500 font-medium">{item.rating}</span>

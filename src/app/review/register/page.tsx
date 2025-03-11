@@ -1,20 +1,17 @@
 'use client';
 
-import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import Link from 'next/link';
 import { register_schema } from '@/schema';
-import { RegisterInfo } from '@/types';
-import Image from 'next/image';
-import { useMutation } from '@tanstack/react-query';
 import { registerAccountAPI } from '@/services/auth';
+import { RegisterInfo } from '@/types';
 import { ToastSuccess } from '@/utils/toastify';
-import { useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
 
 const RegisterPage = () => {
-  const router = useRouter();
-
   const {
     handleSubmit,
     register,
@@ -32,13 +29,7 @@ const RegisterPage = () => {
   const { mutateAsync: registerAccountMutation } = useMutation({
     mutationFn: registerAccountAPI,
     onSuccess: (data) => {
-      ToastSuccess(data._message);
-      ToastSuccess('Please login again!');
-      if (window.history.length > 1) {
-        router.back();
-      } else {
-        router.push('/review/login');
-      }
+      ToastSuccess(data.message);
     },
   });
 

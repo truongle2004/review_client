@@ -9,6 +9,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ToastContainer } from 'react-toastify';
 import { QueryProvider } from '@/components/QueryProvider';
+import useAuthStore from '@/store/authStore';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

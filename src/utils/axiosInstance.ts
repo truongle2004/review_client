@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token');
+  const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -21,9 +21,9 @@ axiosInstance.interceptors.response.use(
   (response) => {
     const data = response.data;
 
-    if (data.accesstoken) {
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.accesstoken}`;
-      sessionStorage.setItem('token', data.accesstoken);
+    if (data.accessToken) {
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+      localStorage.setItem('token', data.accessToken);
     }
 
     return data;

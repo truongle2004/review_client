@@ -5,37 +5,13 @@ import ImageSlider from '@/components/ImageSlider';
 import RatingDisplay from '@/components/Rating';
 import WriteReview from '@/components/WriteReview';
 import { fetchProductDetailAPI } from '@/services/product';
+import { addNewReviewAPI, getReviewsAPI } from '@/services/review';
 import useAuthStore from '@/store/authStore';
-import { ToastWarning } from '@/utils/toastify';
-import { useQuery } from '@tanstack/react-query';
+import { ToastError, ToastSuccess, ToastWarning } from '@/utils/toastify';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-
-// Mock review data (you can replace this with a real API fetch later)
-const mockReviews = [
-  {
-    id: 1,
-    reviewerName: 'Alice Johnson',
-    rating: 4.5,
-    comment: '<p>Really love this chair! It’s sturdy and looks great in my dining room.</p>',
-    date: '2025-02-15',
-  },
-  {
-    id: 2,
-    reviewerName: 'Bob Smith',
-    rating: 4.0,
-    comment: '<p>Good quality, but the scratches were a bit more noticeable than expected.</p>',
-    date: '2025-02-10',
-  },
-  {
-    id: 3,
-    reviewerName: 'Clara Lee',
-    rating: 5.0,
-    comment: '<p>Perfect! Exactly what I was looking for.</p>',
-    date: '2025-01-28',
-  },
-];
 
 const ListingReviewPage = () => {
   const params = useParams<{ id: string }>();
@@ -47,7 +23,7 @@ const ListingReviewPage = () => {
   const handleCloseReadMore = () => setShowReadMore(false);
   const handleOpenReadMore = () => setShowReadMore(true);
 
-  const { data } = useQuery({
+  const { data: listProductData } = useQuery({
     queryKey: ['product', params.id],
     queryFn: () => fetchProductDetailAPI({ id: Number(params.id) }),
     enabled: !!params.id,
@@ -61,12 +37,41 @@ const ListingReviewPage = () => {
     setShowWriteReview(!showWriteReview);
   };
 
-  const handleSubmitReview = (content: string) => {
-    console.log(content);
+  const { mutate: addNewReviewMutation } = useMutation({
+    mutationFn: addNewReviewAPI,
+    onSuccess: (data) => {
+      console.log(data);
+      setShowWriteReview(false);
+      ToastSuccess('Review submitted successfully');
+    },
+    onError: (err) => {
+      console.log(err);
+      ToastError('Failed to submit review');
+    },
+  });
+
+  const { data: listReviewData } = useQuery({
+    queryKey: ['reviews', params.id],
+    queryFn: () => getReviewsAPI(Number(params.id)),
+    enabled: !!params.id,
+  });
+
+  const handleSubmitReview = (content: string, title: string) => {
+    addNewReviewMutation({
+      productId: Number(params.id),
+      userId: userInfo.userId as string,
+      title,
+      content,
+    });
   };
 
   if (showReadMore) {
-    return <Description content={data?.description as string} handleClose={handleCloseReadMore} />;
+    return (
+      <Description
+        content={listProductData?.description as string}
+        handleClose={handleCloseReadMore}
+      />
+    );
   }
 
   return (
@@ -76,8 +81,8 @@ const ListingReviewPage = () => {
           {/* Main Review Card */}
           <div id="card-review" className="card bg-base-100 shadow-xl text-primary-content w-96">
             <div className="card-body">
-              <h2 className="card-title">{data?.title}</h2>
-              <RatingDisplay rating={data?.rating as number} />
+              <h2 className="card-title">{listProductData?.title}</h2>
+              <RatingDisplay rating={listProductData?.rating as number} />
               <div className="card-actions w-full flex flex-row gap-4">
                 <button
                   className="btn btn-primary btn-sm flex-1 h-16"
@@ -113,7 +118,7 @@ const ListingReviewPage = () => {
           <div id="review-header" className="flex-1 min-w-[300px]">
             <ul id="list-images" className="w-full">
               <ImageSlider>
-                {data?.images?.map((image, index) => (
+                {listProductData?.images?.map((image, index) => (
                   <div key={index} className="carousel-item">
                     <Image
                       src={image.src}
@@ -135,16 +140,18 @@ const ListingReviewPage = () => {
             <div className="mt-6">
               <h3 className="text-xl font-bold mb-4">Customer Reviews</h3>
               <div className="flex flex-col gap-4">
-                {mockReviews.length > 0 ? (
-                  mockReviews.map((review) => (
+                {listReviewData ? (
+                  listReviewData.map((review) => (
                     <div key={review.id} className="card bg-base-100 shadow-md w-full">
                       <div className="card-body">
                         <div className="flex justify-between items-center">
-                          <h4 className="card-title text-lg">{review.reviewerName}</h4>
+                          <h4 className="card-title text-lg">{review?.user?.username}</h4>
                           <RatingDisplay rating={review.rating} />
                         </div>
-                        <p className="text-sm text-gray-500">{review.date}</p>
-                        <p dangerouslySetInnerHTML={{ __html: review.comment }}></p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(review.createdAt).toLocaleString()}
+                        </p>
+                        <p>{review.title}</p>
                       </div>
                     </div>
                   ))

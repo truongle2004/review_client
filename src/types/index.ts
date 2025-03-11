@@ -1,3 +1,5 @@
+import type { JwtPayload } from 'jwt-decode';
+
 export interface CountryOption {
   value: string;
   label: string;
@@ -48,25 +50,46 @@ export interface Product extends Timestamp {
   title: string;
 }
 
-export interface RegisterInfo {
+// Define common types
+export type UserPublicInfo = Pick<UserInfo, 'id' | 'username'>;
+export type ProductSummary = Pick<Product, 'id' | 'title'>;
+
+export interface UserInfo {
+  id: string;
   username: string;
   email: string;
+  roles: string;
   password: string;
-  confirmPassword: string;
 }
 
-export interface LoginInfo {
-  email: string;
-  password: string;
+export interface ReviewResponse {
+  createdAt: Date;
+  id: string;
+  title: string;
+  rating: number;
+  content: string;
+  user: UserPublicInfo;
+  product: ProductSummary;
 }
+
+export type RegisterInfo = Omit<UserInfo, 'id' | 'roles'> & { confirmPassword: string };
+export type LoginInfo = Pick<UserInfo, 'email' | 'password'>;
 
 export interface RegisterResponse {
-  _isSuccess: string;
-  _message: string;
+  message: string;
 }
 
 export interface LoginResponse {
-  _isSuccess: string;
-  _message: string;
-  _jwt: string;
+  message: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+  };
+}
+
+export interface TokenResponse extends JwtPayload {
+  userId: string;
+  username: string;
+  email: string;
+  roles: string;
 }

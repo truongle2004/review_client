@@ -1,6 +1,7 @@
+import type { TokenResponse } from '@/types';
 import { jwtDecode } from 'jwt-decode';
 
-const tokenDecodeer = (token: string) => {
+const tokenDecoder = (token: string): TokenResponse | undefined => {
   try {
     return jwtDecode(token);
   } catch (err) {
@@ -8,4 +9,4 @@ const tokenDecodeer = (token: string) => {
   }
 };
 
-export default tokenDecodeer;
+export default tokenDecoder;

@@ -17,7 +17,7 @@ const LoginPage = () => {
   const { mutate: loginAccountMutation } = useMutation({
     mutationFn: loginAccountAPI,
     onSuccess: (data) => {
-      ToastSuccess(data._message);
+      ToastSuccess(data.message);
       if (window.history.length > 1) {
         router.back();
       } else {

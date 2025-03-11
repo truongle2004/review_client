@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   env: {
-    SERVER_URL: 'http://localhost:3002',
+    SERVER_URL: 'http://localhost:3001',
   },
   images: {
     remotePatterns: [
