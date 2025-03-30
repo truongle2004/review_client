@@ -1,25 +1,34 @@
 'use client';
 
+import useAuthStore from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 const Navbar = () => {
   const [toggleDropdown, setToggleDropdown] = useState(false);
-
   const router = useRouter();
+  const { userInfo, logout } = useAuthStore();
 
   const handleToggleDropdown = (e: React.ChangeEvent<HTMLInputElement>) => {
     setToggleDropdown(e.target.value.length > 0);
   };
 
-  const handleRedirectLoginPage = () => {
-    router.push('/review/login');
-
+  const handleRedirectProfilePage = () => {
+    if (userInfo.userId) {
+      router.push(`/review/user/${userInfo.userId}`);
+    }
     setToggleDropdown(false);
   };
 
   const handleLogout = () => {
-    handleRedirectLoginPage();
+    logout();
+    router.push('/review/login');
+    setToggleDropdown(false);
+  };
+
+  const handleLogin = () => {
+    router.push('/review/login');
+    setToggleDropdown(false);
   };
 
   return (
@@ -64,21 +73,25 @@ const Navbar = () => {
             tabIndex={0}
             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
           >
-            <li>
-              <a className="justify-between">
-                Profile
-                <span className="badge">New</span>
-              </a>
-            </li>
-            <li>
-              <a>Settings</a>
-            </li>
-            <li>
-              <a>Logout</a>
-            </li>
-            <li onClick={handleRedirectLoginPage}>
-              <a>Login</a>
-            </li>
+            {userInfo.userId ? (
+              <>
+                <li>
+                  <a className="justify-between" onClick={handleRedirectProfilePage}>
+                    Profile
+                  </a>
+                </li>
+                <li>
+                  <a>Settings</a>
+                </li>
+                <li onClick={handleLogout}>
+                  <a>Logout</a>
+                </li>
+              </>
+            ) : (
+              <li onClick={handleLogin}>
+                <a>Login</a>
+              </li>
+            )}
           </ul>
         </div>
       </div>

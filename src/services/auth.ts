@@ -1,5 +1,12 @@
 import { env } from '@/enviroment/env';
-import { RegisterResponse, RegisterInfo, LoginResponse, LoginInfo } from '@/types';
+import {
+  RegisterResponse,
+  RegisterInfo,
+  LoginResponse,
+  LoginInfo,
+  type RefreshTokenResponse,
+} from '@/types';
+
 import axiosInstance from '@/utils/axiosInstance';
 
 export const registerAccountAPI = async ({
@@ -24,6 +31,6 @@ export const loginAccountAPI = async ({ email, password }: LoginInfo): Promise<L
   });
 };
 
-export const refreshToken = async () => {
-  return await axiosInstance.post(env.SERVER_URL + '/v1/auth/refresh-token');
+export const refreshToken = async (): Promise<RefreshTokenResponse> => {
+  return await axiosInstance.post(env.SERVER_URL + '/v1/auth/refresh');
 };

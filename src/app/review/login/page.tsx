@@ -3,7 +3,7 @@
 import { login_schema } from '@/schema';
 import { loginAccountAPI } from '@/services/auth';
 import type { LoginInfo } from '@/types';
-import { ToastSuccess } from '@/utils/toastify';
+import { ToastError, ToastSuccess } from '@/utils/toastify';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
+import axiosInstance from '@/utils/axiosInstance';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -18,11 +19,16 @@ const LoginPage = () => {
     mutationFn: loginAccountAPI,
     onSuccess: (data) => {
       ToastSuccess(data.message);
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.data.accessToken}`;
+      localStorage.setItem('token', data.data.accessToken);
       if (window.history.length > 1) {
         router.back();
       } else {
         router.push('/review/home');
       }
+    },
+    onError: (err) => {
+      ToastError(err.message);
     },
   });
 

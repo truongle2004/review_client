@@ -1,31 +1,14 @@
 'use client';
 
-import useAuthStore from '@/store/authStore';
-import tokenDecoder from '@/utils/tokenDecode';
-import { useEffect } from 'react';
+import { QueryProvider } from '@/components/QueryProvider';
+
+import { ToastContainer } from 'react-toastify';
 
 const ReviewLayout = ({ children }: { children: React.ReactNode }) => {
-  const { setIsAdmin, setLoginStatus, setUserId } = useAuthStore();
-
-  const handleCheckLogin = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const decodedToken = tokenDecoder(token);
-      if (decodedToken) {
-        setUserId(decodedToken.userId);
-        setIsAdmin(decodedToken.roles === 'admin');
-        setLoginStatus(true);
-      }
-    }
-  };
-
-  useEffect(() => {
-    handleCheckLogin();
-  }, []);
-
   return (
     <div>
-      <main>{children}</main>
+      <QueryProvider>{children}</QueryProvider>
+      <ToastContainer />
     </div>
   );
 };

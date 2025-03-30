@@ -1,32 +1,27 @@
+import tokenDecoder from '@/utils/tokenDecode';
 import { create } from 'zustand';
 
 interface UserInfo {
-  userId?: string;
-  isLoggedIn?: boolean;
+  userId?: string | null;
   isAdmin?: boolean;
 }
 
 interface AuthStore {
   userInfo: UserInfo;
-  setLoginStatus: (isLoggedIn: boolean) => void;
   setIsAdmin: (isAdmin: boolean) => void;
   setUserId: (userId: string) => void;
+  isLoggedIn?: () => boolean;
+  logout: () => void;
 }
+
+const getAuthInfo = () => {
+  return tokenDecoder(localStorage.getItem('token') as string);
+};
 
 const useAuthStore = create<AuthStore>((set, get) => ({
   userInfo: {
-    userId: '',
-    isLoggedIn: false,
-    isAdmin: false,
-  },
-
-  setLoginStatus: (isLoggedIn: boolean) => {
-    set((state) => ({
-      userInfo: {
-        ...state.userInfo, // Keep existing user info
-        isLoggedIn,
-      },
-    }));
+    userId: getAuthInfo()?.userId,
+    isAdmin: getAuthInfo()?.roles === 'admin',
   },
 
   setIsAdmin: (isAdmin: boolean) => {
@@ -38,11 +33,26 @@ const useAuthStore = create<AuthStore>((set, get) => ({
     }));
   },
 
+  isLoggedIn() {
+    return !!localStorage.getItem('token');
+  },
+
   setUserId: (userId: string) => {
     set((state) => ({
       userInfo: {
         ...state.userInfo,
         userId,
+      },
+    }));
+  },
+
+  logout: () => {
+    set((state) => ({
+      userInfo: {
+        ...state.userInfo,
+        userId: '',
+        isAdmin: false,
+        token: '',
       },
     }));
   },
