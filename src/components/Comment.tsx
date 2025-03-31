@@ -1,20 +1,23 @@
 'use client';
 
-import { FC, useState, useRef } from 'react';
-import Avatar from './Avatar';
-import { StaticImageData } from 'next/image';
-import { useMutation } from '@tanstack/react-query';
 import { addComment, deleteComment, updateComment } from '@/services/comment';
-import TextEditor from './TextEditor';
 import useAuthStore from '@/store/authStore';
-import { useParams } from 'next/navigation';
 import { faImage } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useMutation } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
+import { FC, useRef, useState } from 'react';
+import Avatar from './Avatar';
+import TextEditor from './TextEditor';
+import Image from 'next/image';
+import type { CommentImage } from '@/types';
+import { env } from '@/enviroment/env';
 
 interface CommentProps {
   comment_id: string;
-  imageUrl: string | StaticImageData;
+  imageUrls: CommentImage[];
   username: string;
+  profilePicture: string;
   isChild?: boolean;
   userId: string;
   content: string;
@@ -23,9 +26,10 @@ interface CommentProps {
 }
 
 const Comment: FC<CommentProps> = ({
-  imageUrl,
+  imageUrls,
   userId,
   username,
+  profilePicture,
   content,
   createAt,
   comment_id,
@@ -129,8 +133,8 @@ const Comment: FC<CommentProps> = ({
     <div className={`mt-10 mb-10 ${isChild ? 'ml-8 w-[calc(100%-2rem)]' : 'w-full'}`}>
       <div className="p-4 border rounded-lg shadow-md bg-base-100">
         <div className="flex items-center justify-between">
-          <Avatar src={imageUrl} username={username} />
-          <p className="text-sm text-gray-500">{createAt.toLocaleDateString()}</p>
+          <Avatar src={profilePicture} username={username} />
+          <p className="text-sm text-gray-500">{new Date(createAt).toLocaleDateString()}</p>
         </div>
         <div className="mt-2">
           {isEditing ? (
@@ -157,10 +161,12 @@ const Comment: FC<CommentProps> = ({
                   <div className="mt-2 flex flex-wrap gap-2">
                     {previewUrls.map((url, index) => (
                       <div key={index} className="relative">
-                        <img
+                        <Image
                           src={url}
                           alt={`Preview ${index + 1}`}
                           className="w-20 h-20 object-cover rounded"
+                          width={80}
+                          height={80}
                         />
                         <button
                           onClick={() => removeImage(index)}
@@ -183,7 +189,19 @@ const Comment: FC<CommentProps> = ({
               </div>
             </div>
           ) : (
-            <p className="text-white" dangerouslySetInnerHTML={{ __html: editedContent }}></p>
+            <>
+              <p className="text-white" dangerouslySetInnerHTML={{ __html: editedContent }}></p>
+              {imageUrls.map((url, index) => (
+                <Image
+                  key={index}
+                  src={`${env.SERVER_URL}/${url.url}`}
+                  alt={`Preview ${index + 1}`}
+                  className="w-20 h-20 object-cover rounded"
+                  width={80}
+                  height={80}
+                />
+              ))}
+            </>
           )}
         </div>
         {!isEditing && (

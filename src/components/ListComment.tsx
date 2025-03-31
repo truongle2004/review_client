@@ -1,9 +1,9 @@
 'use client';
 
 import { FC } from 'react';
-import Comment from './Comment';
-import { Comment as CommentType } from '@/types';
 import { useQueryClient } from '@tanstack/react-query';
+import { Comment as CommentType, CommentImage } from '@/types';
+import Comment from './Comment';
 
 interface ListCommentProps {
   comments: CommentType[];
@@ -12,37 +12,44 @@ interface ListCommentProps {
 
 interface CommentTreeProps {
   comment: CommentType;
-  reviewId: string;
+  profilePicture: string;
+  imagesUrl: CommentImage[];
   onSuccess: () => void;
   level?: number;
+  replies?: CommentType[];
 }
 
-const CommentTree: FC<CommentTreeProps> = ({ comment, reviewId, onSuccess, level = 0 }) => {
+const CommentTree: FC<CommentTreeProps> = ({
+  comment,
+  onSuccess,
+  imagesUrl,
+  level = 0,
+  profilePicture,
+  replies = [],
+}) => {
   return (
-    <div>
+    <div style={{ marginLeft: `${level * 2}rem` }}>
       <Comment
-        comment_id={comment.id}
+        comment_id={comment.commentId}
+        imageUrls={imagesUrl}
+        profilePicture={profilePicture}
         userId={comment.user.id}
-        username={comment.user.name}
-        content={comment.text}
-        createAt={new Date()}
-        imageUrl="/images/avatar.png"
+        username={comment.user.username}
+        content={comment.content}
+        createAt={new Date(comment.updatedAt)}
         onSuccess={onSuccess}
         isChild={level > 0}
       />
-      {comment.children && comment.children.length > 0 && (
-        <div className={`ml-8`}>
-          {comment.children.map((child) => (
-            <CommentTree
-              key={child.id}
-              comment={child}
-              reviewId={reviewId}
-              onSuccess={onSuccess}
-              level={level + 1}
-            />
-          ))}
-        </div>
-      )}
+      {replies.map((reply) => (
+        <CommentTree
+          key={reply.commentId}
+          comment={reply}
+          imagesUrl={reply.images}
+          onSuccess={onSuccess}
+          profilePicture={reply.user.profile.profile_picture}
+          level={level + 1}
+        />
+      ))}
     </div>
   );
 };
@@ -54,15 +61,32 @@ const ListComment: FC<ListCommentProps> = ({ comments, reviewId }) => {
     queryClient.invalidateQueries({ queryKey: ['comments', reviewId] });
   };
 
+  // Group comments by parent ID
+  const commentMap = new Map<string, CommentType[]>();
+  const rootComments: CommentType[] = [];
+
+  comments.forEach((comment) => {
+    if (comment.parentId === null) {
+      rootComments.push(comment);
+      commentMap.set(comment.commentId, []);
+    } else {
+      const replies = commentMap.get(comment.parentId) || [];
+      replies.push(comment);
+      commentMap.set(comment.parentId, replies);
+    }
+  });
+
   return (
-    <div className="mt-10">
-      {comments.map((comment) => (
+    <div className="mt-10 space-y-4">
+      {rootComments.map((comment) => (
         <CommentTree
-          key={comment.id}
+          key={comment.commentId}
           comment={comment}
-          reviewId={reviewId}
+          imagesUrl={comment.images}
           onSuccess={handleCommentSuccess}
+          profilePicture={comment.user.profile.profile_picture}
           level={0}
+          replies={commentMap.get(comment.commentId) || []}
         />
       ))}
     </div>

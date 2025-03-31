@@ -15,7 +15,7 @@ export const addComment = async ({
 }) => {
   const formData = new FormData();
   formData.append('reviewId', reviewId);
-  formData.append('parentId', parentId !== null ? parentId : '');
+  if (parentId !== null) formData.append('parentId', parentId !== null ? parentId : '');
   formData.append('content', content);
   images.forEach((image) => {
     formData.append('images', image);

@@ -32,7 +32,9 @@ export const addNewReviewAPI = async ({
   content: string;
   title: string;
   productId: number;
-}): Promise<Review> => {
+}): Promise<{
+  id: string;
+}> => {
   return axiosInstance.post(env.SERVER_URL + '/v1/review', {
     userId,
     content,
@@ -42,7 +44,7 @@ export const addNewReviewAPI = async ({
 };
 
 export const getReviewsAPI = async (productId: number): Promise<Review[]> => {
-  return axiosInstance.get(env.SERVER_URL + `/v1/review/${productId}`);
+  return axiosInstance.get(env.SERVER_URL + `/v1/review/product/${productId}`);
 };
 
 export const getDetailReviewAPI = async (

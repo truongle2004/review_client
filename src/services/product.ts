@@ -51,3 +51,12 @@ export const fetchProductDetailByIdAPI = async ({ id }: { id: number }): Promise
 export const deleteProductAPI = async ({ id }: { id: number }): Promise<{ message: string }> => {
   return await axiosInstance.delete(env.SERVER_URL + `/v1/product/${id}`);
 };
+
+export const createProductAPI = async (data: {
+  title: string;
+  description: string;
+  categoryId: number;
+  images: { src: string; alt: string }[];
+}): Promise<Product> => {
+  return await axiosInstance.post(env.SERVER_URL + '/v1/product', data);
+};

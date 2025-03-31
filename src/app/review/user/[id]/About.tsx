@@ -2,35 +2,47 @@
 
 import SectionComponent from '@/components/SectionCustom';
 import TextEditor from '@/components/TextEditor';
-import { profile_schema } from '@/schema';
 import editProfileStore from '@/store/editProfileStore';
-import { UpdateProfileInfo } from '@/types';
-import { getProfileAPI, updateProfileAPI } from '@/services/user';
+import { UpdateProfileInfo, UserProfileResponse } from '@/types';
+import { updateProfileAPI } from '@/services/user';
 import { ToastSuccess, ToastError } from '@/utils/toastify';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Calendar from 'react-calendar';
-import { useForm } from 'react-hook-form';
 import PhoneInput from 'react-phone-number-input';
 import useAuthStore from '@/store/authStore';
 
-const About = () => {
+interface AboutProps {
+  userProfile: UserProfileResponse['data'];
+}
+
+const About: React.FC<AboutProps> = ({ userProfile }) => {
   const { userInfo } = useAuthStore();
-  const [bio, setBio] = useState('');
-  const [phone, setPhoneNumber] = useState('');
-  const [gender, setGender] = useState('');
-  const [profileUrl, setProfileUrl] = useState('');
-  const [country, setCountry] = useState('');
-  const [birthday, setBirthday] = useState(new Date());
-  const [userName, setUserName] = useState('');
-  const [email, setEmail] = useState('');
+  const [bio, setBio] = useState(userProfile.profile.bio || '');
+  const [phone, setPhoneNumber] = useState(userProfile.profile.phone || '');
+  const [gender, setGender] = useState(userProfile.profile.gender || '');
+  const [country, setCountry] = useState(userProfile.profile.country || '');
+  const [birthday, setBirthday] = useState(
+    userProfile.profile.birthday ? new Date(userProfile.profile.birthday) : new Date()
+  );
+  const [username, setUsername] = useState(userProfile.username || '');
+  const [email, setEmail] = useState(userProfile.email || '');
 
   const handleSetBio = (value: string) => setBio(value);
 
   const { setOpen, open } = editProfileStore();
 
-  const handleCancel = () => setOpen(false);
+  const handleCancel = () => {
+    // Reset form values to original data
+    setBio(userProfile.profile.bio || '');
+    setPhoneNumber(userProfile.profile.phone || '');
+    setGender(userProfile.profile.gender || '');
+    setCountry(userProfile.profile.country || '');
+    setBirthday(userProfile.profile.birthday ? new Date(userProfile.profile.birthday) : new Date());
+    setUsername(userProfile.username || '');
+    setEmail(userProfile.email || '');
+    setOpen(false);
+  };
 
   const { mutate: updateProfileMutation } = useMutation({
     mutationFn: updateProfileAPI,
@@ -46,49 +58,17 @@ const About = () => {
   const handleCloseEditAndSave = () => {
     const profileData: UpdateProfileInfo = {
       userId: userInfo.userId as string,
-      profilePicture: profileUrl,
+      profilePicture: userProfile.profile.profile_picture,
       country,
       phone,
       gender,
       birthday,
       bio,
+      username,
+      email,
     };
     updateProfileMutation(profileData);
   };
-
-  const { register } = useForm({
-    defaultValues: {
-      userName: '',
-      email: '',
-      profileUrl: '',
-      country: '',
-    },
-    resolver: zodResolver(profile_schema),
-  });
-
-  const { mutate: getProfile } = useMutation({
-    mutationFn: getProfileAPI,
-    onSuccess: (data) => {
-      // Update all form fields with the profile data
-      setBio(data.data.profile.bio || '');
-      setPhoneNumber(data.data.profile.phone || '');
-      setGender(data.data.profile.gender || '');
-      setProfileUrl(data.data.profile.profile_picture || '');
-      setCountry(data.data.profile.country || '');
-      setBirthday(data.data.profile.birthday ? new Date(data.data.profile.birthday) : new Date());
-      setUserName(data.data.username || '');
-      setEmail(data.data.email || '');
-    },
-    onError: (error: Error) => {
-      ToastError(error.message || 'Failed to fetch profile');
-    },
-  });
-
-  useEffect(() => {
-    if (userInfo.userId) {
-      getProfile({ userId: userInfo.userId });
-    }
-  }, [userInfo.userId]);
 
   const handleSetGender = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.currentTarget.type === 'checkbox') {
@@ -98,95 +78,66 @@ const About = () => {
 
   return (
     <div className="mt-6 space-y-4 flex flex-col gap-5">
-      {!open && (
-        <button className="btn btn-primary btn-sm self-end" onClick={() => setOpen(true)}>
-          Edit Profile
-        </button>
-      )}
-
-      <SectionComponent title="Contact Information">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">User name:</p>
-            {open ? (
-              <input
-                type="text"
-                className="input input-bordered w-full input-sm max-w-xs"
-                {...register('userName', {
-                  onChange: (e) => setUserName(e.target.value),
-                })}
-              />
-            ) : (
-              <p>{userName || 'Not provided'}</p>
-            )}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Profile Information</h2>
+        {!open ? (
+          <button className="btn btn-primary" onClick={() => setOpen(true)}>
+            Edit Profile
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <button className="btn btn-ghost" onClick={handleCancel}>
+              Cancel
+            </button>
+            <button className="btn btn-primary" onClick={handleCloseEditAndSave}>
+              Save Changes
+            </button>
           </div>
-
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">Phone number:</p>
-            {open ? (
-              <PhoneInput
-                value={phone}
-                onChange={(value) => setPhoneNumber(value as string)}
-                className="input input-bordered w-full max-w-xs"
-              />
-            ) : (
-              <p>{phone || 'Not provided'}</p>
-            )}
+        )}
+      </div>
+      <SectionComponent title="About Me">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Username</label>
+            <input
+              type="text"
+              className="input input-bordered w-full"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={!open}
+            />
           </div>
-
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">Email:</p>
-            {open ? (
-              <input
-                type="email"
-                className="input input-bordered w-full input-sm max-w-xs"
-                {...register('email', {
-                  onChange: (e) => setEmail(e.target.value),
-                })}
-              />
-            ) : (
-              <p>{email || 'Not provided'}</p>
-            )}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Email</label>
+            <input
+              type="email"
+              className="input input-bordered w-full"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={!open}
+            />
           </div>
-
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">Profile URL:</p>
-            {open ? (
-              <input
-                type="url"
-                className="input input-bordered w-full input-sm max-w-xs"
-                {...register('profileUrl', {
-                  onChange: (e) => setProfileUrl(e.target.value),
-                })}
-              />
-            ) : (
-              <p>{profileUrl || 'Not provided'}</p>
-            )}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Phone</label>
+            <PhoneInput
+              value={phone}
+              onChange={(value) => setPhoneNumber(value || '')}
+              className="input input-bordered w-full"
+              disabled={!open}
+            />
           </div>
-
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">Country:</p>
-            {open ? (
-              <input
-                type="text"
-                className="input input-bordered w-full input-sm max-w-xs"
-                {...register('country', {
-                  onChange: (e) => setCountry(e.target.value),
-                })}
-              />
-            ) : (
-              <p>{country || 'Not provided'}</p>
-            )}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Country</label>
+            <input
+              type="text"
+              className="input input-bordered w-full"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              disabled={!open}
+            />
           </div>
-        </div>
-      </SectionComponent>
-
-      <hr className="border-gray-300" />
-
-      <SectionComponent title="Basic Information">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">Birthday: </p>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Birthday</label>
             {open ? (
               <Calendar
                 onChange={(value) => setBirthday(value as Date)}
@@ -194,61 +145,59 @@ const About = () => {
                 className="rounded-lg border p-2"
               />
             ) : (
-              <p>{birthday.toLocaleDateString()}</p>
+              <div className="input input-bordered w-full">{birthday.toLocaleDateString()}</div>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <p className="font-bold w-32 text-white">Gender: </p>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Gender</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="MALE"
+                  checked={gender === 'MALE'}
+                  onChange={handleSetGender}
+                  className="checkbox"
+                  disabled={!open}
+                />
+                <span>Male</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="FEMALE"
+                  checked={gender === 'FEMALE'}
+                  onChange={handleSetGender}
+                  className="checkbox"
+                  disabled={!open}
+                />
+                <span>Female</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="OTHER"
+                  checked={gender === 'OTHER'}
+                  onChange={handleSetGender}
+                  className="checkbox"
+                  disabled={!open}
+                />
+                <span>Other</span>
+              </label>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Bio</label>
             {open ? (
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="male"
-                    checked={gender === 'male'}
-                    className="checkbox"
-                    onChange={handleSetGender}
-                  />
-                  <span>Male</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="female"
-                    checked={gender === 'female'}
-                    className="checkbox"
-                    onChange={handleSetGender}
-                  />
-                  <span>Female</span>
-                </label>
-              </div>
+              <TextEditor defaultValue={bio} setValue={handleSetBio} field="bio" />
             ) : (
-              <p>{gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : 'Not specified'}</p>
+              <div className="input input-bordered w-full min-h-[100px] p-2">
+                {bio || 'No bio provided'}
+              </div>
             )}
           </div>
         </div>
       </SectionComponent>
-
-      <hr className="border-gray-300" />
-
-      <div>
-        {open ? (
-          <TextEditor field="bio" labelText="Bio editing" setValue={handleSetBio} />
-        ) : (
-          <SectionComponent title="BIO">{bio}</SectionComponent>
-        )}
-      </div>
-
-      {open && (
-        <div className="flex flex-row items-center gap-3">
-          <button className="btn btn-error btn-outline" onClick={handleCancel}>
-            Cancel
-          </button>
-          <button className="btn btn-success btn-outline" onClick={handleCloseEditAndSave}>
-            Save
-          </button>
-        </div>
-      )}
     </div>
   );
 };

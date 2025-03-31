@@ -23,7 +23,7 @@ const RegisterPage = () => {
       password: '',
       confirmPassword: '',
     },
-    // resolver: zodResolver(register_schema),
+    resolver: zodResolver(register_schema),
   });
 
   const { mutateAsync: registerAccountMutation } = useMutation({

@@ -15,6 +15,10 @@ import editProfileStore from '@/store/editProfileStore';
 import About from './About';
 import { useState } from 'react';
 import TimeLine from './TimeLine';
+import { useQuery } from '@tanstack/react-query';
+import { getProfileAPI } from '@/services/user';
+import { useParams } from 'next/navigation';
+import type { UserProfileResponse } from '@/types';
 
 const UserPage = () => {
   const {
@@ -22,12 +26,16 @@ const UserPage = () => {
   } = useAuthStore();
 
   const { setOpen, open, setIsUserProfile, isUserProfile } = editProfileStore();
-
-  const handleSetOpen = () => setOpen(true);
+  const params = useParams<{ id: string }>();
   const [buttonIndex, setButtonIndex] = useState(1);
 
-  const handleSetButtonIndex = (index: number) => setButtonIndex(index);
+  const { data: userProfile } = useQuery<UserProfileResponse>({
+    queryKey: ['userProfile', params.id],
+    queryFn: () => getProfileAPI({ userId: params.id }),
+  });
 
+  const handleSetOpen = () => setOpen(true);
+  const handleSetButtonIndex = (index: number) => setButtonIndex(index);
   const handleSetIsUserProfile = (isProfile: boolean) => setIsUserProfile(isProfile);
 
   return (
@@ -35,9 +43,11 @@ const UserPage = () => {
       <div className="flex flex-col gap-10 font-bold text-pink-50">
         {/* Avatar Section */}
         <Image
-          src={avatar}
+          src={userProfile?.data.profile.profile_picture || avatar}
           alt="User Avatar"
-          className="h-96 w-96 ring ring-cyan-50 rounded-full"
+          className="h-96 w-96 ring ring-cyan-50 rounded-full object-cover"
+          width={384}
+          height={384}
         />
         {/*USER EXPERIENCE*/}
         <div>
@@ -58,10 +68,12 @@ const UserPage = () => {
       <div className="flex-1 flex flex-col justify-between">
         {/* User Name & Location */}
         <div>
-          <h1 className="text-2xl font-semibold">Truong dep trai</h1>
+          <h1 className="text-2xl font-semibold">{userProfile?.data.username}</h1>
           <div className="flex items-center gap-2 text-gray-600">
             <FontAwesomeIcon icon={faLocationDot} />
-            <span className="text-white">New York</span>
+            <span className="text-white">
+              {userProfile?.data.profile.country || 'Not specified'}
+            </span>
           </div>
         </div>
 
@@ -129,7 +141,7 @@ const UserPage = () => {
         </div>
         {/* Contact & Basic Information */}
         {buttonIndex === 0 && <TimeLine />}
-        {buttonIndex === 1 && <About />}
+        {buttonIndex === 1 && userProfile?.data && <About userProfile={userProfile.data} />}
       </div>
     </div>
   );

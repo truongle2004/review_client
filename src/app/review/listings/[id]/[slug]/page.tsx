@@ -1,25 +1,22 @@
 'use client';
 
-import { getReviewImages } from '@/services/review';
-import { ReviewImage, Review } from '@/types';
-import { faComment, faShare } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useMutation } from '@tanstack/react-query';
-import Image from 'next/image';
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Description from '@/components/Description';
 import ImageSlider from '@/components/ImageSlider';
 import RatingDisplay from '@/components/Rating';
 import WriteReview from '@/components/WriteReview';
+import { env } from '@/enviroment/env';
 import { fetchProductDetailAPI } from '@/services/product';
-import { addNewReviewAPI, getReviewsAPI, uploadImages } from '@/services/review';
+import { addNewReviewAPI, getReviewImages, getReviewsAPI, uploadImages } from '@/services/review';
 import useAuthStore from '@/store/authStore';
+import { Review } from '@/types';
 import { ToastError, ToastWarning } from '@/utils/toastify';
 import tokenDecoder from '@/utils/tokenDecode';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { env } from '@/enviroment/env';
+import { faComment, faShare } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const ListingReviewPage = () => {
   const params = useParams<{ id: string }>();
@@ -27,7 +24,6 @@ const ListingReviewPage = () => {
   const [showWriteReview, setShowWriteReview] = useState(false);
   const { userInfo, isLoggedIn } = useAuthStore();
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [overviewImages, setOverviewImages] = useState<ReviewImage | null>(null);
   const router = useRouter();
 
   const handleCloseReadMore = () => setShowReadMore(false);
@@ -53,9 +49,8 @@ const ListingReviewPage = () => {
 
   const { mutateAsync: addNewReviewMutation } = useMutation({
     mutationFn: addNewReviewAPI,
-    onSuccess: (data) => {
+    onSuccess: () => {
       setShowWriteReview(false);
-      setReviews([data, ...reviews]);
       // ToastSuccess('Review submitted successfully');
     },
     onError: (err) => {
@@ -66,7 +61,7 @@ const ListingReviewPage = () => {
 
   const { mutateAsync: getReviewsAPIMutaion } = useMutation({
     mutationFn: getReviewsAPI,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // TODO: something
     },
   });
@@ -99,13 +94,14 @@ const ListingReviewPage = () => {
         content,
       });
 
-      if (images.length > 0) {
+      if (images.length > 0 && res.id) {
         await uploadImagesMutation({
-          reviewId: res.review_id,
+          reviewId: res.id,
           images,
         });
       }
-    } catch (error) {
+    } catch (err) {
+      console.log(err);
       ToastError('There something went wrong. Please try again');
     }
   };
@@ -113,7 +109,7 @@ const ListingReviewPage = () => {
   const handleFetchingData = async () => {
     const res = await getReviewsAPIMutaion(Number(params.id));
 
-    let result: Review[] = [];
+    const result: Review[] = [];
 
     res.map((review) => {
       getReviewImagesMutation({ reviewId: review.review_id as string }).then((res_image) => {

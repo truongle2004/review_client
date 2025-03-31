@@ -1,17 +1,23 @@
 'use client';
 
 import { fetchAllCategoryAPI } from '@/services/category';
-import { deleteProductAPI, fetchProductAPI, fetchProductPaginationAPI } from '@/services/product';
-import type { Product } from '@/types';
+import {
+  deleteProductAPI,
+  fetchProductAPI,
+  fetchProductPaginationAPI,
+  createProductAPI,
+} from '@/services/product';
+import type { Category, Product } from '@/types';
 import { AppConstant } from '@/utils/AppConstant';
 import { convertToSlug } from '@/utils/slugify';
-import { ToastWarning } from '@/utils/toastify';
+import { ToastWarning, ToastError, ToastSuccess } from '@/utils/toastify';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { toast } from 'react-toastify';
 import Paginate from '../Paginate';
+import AddProductForm from '../AddProductForm';
 
 const ListProductAdmin = () => {
   const [page, setPage] = useState(AppConstant.FIRST_PAGE);
@@ -19,6 +25,8 @@ const ListProductAdmin = () => {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [openModalAlertDelete, setOpenModalAlertDelete] = useState(false);
   const [productId, setProductId] = useState<number | null>(null);
+  const [listCategory, setListCategory] = useState<Category[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [paginateData, setPaginateData] = useState<{
     page: number;
     limit: number;
@@ -32,12 +40,8 @@ const ListProductAdmin = () => {
 
   const router = useRouter();
 
-  const { mutate: fetchListProductMutation, isPending } = useMutation({
-    mutationFn: () =>
-      fetchProductAPI({
-        page,
-        limit: AppConstant.PAGE_SIZE,
-      }),
+  const { mutateAsync: fetchListProductByCategoryMutation } = useMutation({
+    mutationFn: fetchProductPaginationAPI,
     onSuccess: (data) => {
       setPaginateData({
         page: data.page,
@@ -48,35 +52,35 @@ const ListProductAdmin = () => {
     },
   });
 
-  const { mutate: fetchListProductByCategoryMutation } = useMutation({
-    mutationFn: () =>
-      fetchProductPaginationAPI({
-        page,
-        limit: AppConstant.PAGE_SIZE,
-        categoryId: categoryId as number,
-        rating,
-      }),
+  const { mutateAsync: fetchAllCategoryMutation } = useMutation({
+    mutationFn: fetchAllCategoryAPI,
     onSuccess: (data) => {
-      setPaginateData({
-        page: data.page,
-        limit: data.limit,
-        total: data.total,
-      });
-      setListProduct(data.data);
+      setListCategory(data);
     },
   });
 
-  const { mutate: deleteProductMutation } = useMutation({
+  const { mutateAsync: deleteProductMutation } = useMutation({
     mutationFn: deleteProductAPI,
     onSuccess: (data) => {
       toast.success(data.message);
     },
   });
 
-  const { data: listCategory } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => fetchAllCategoryAPI(),
-  });
+  const handleSubmitProduct = async (data: {
+    title: string;
+    description: string;
+    categoryId: number;
+    images: { src: string; alt: string }[];
+  }) => {
+    try {
+      await createProductAPI(data);
+      ToastSuccess('Product added successfully');
+      setShowAddForm(false);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      ToastError('Failed to add product');
+    }
+  };
 
   const handleSubmitFilter = () => {
     if (categoryId === null && rating === 1) {
@@ -85,12 +89,22 @@ const ListProductAdmin = () => {
     }
     setListProduct([]);
     setPage(AppConstant.FIRST_PAGE);
-    fetchListProductByCategoryMutation();
+    fetchListProductByCategoryMutation({
+      page: AppConstant.FIRST_PAGE,
+      limit: AppConstant.PAGE_SIZE,
+      categoryId: categoryId ?? 0,
+      rating,
+    });
   };
 
   const handleLoadMore = () => {
-    if (categoryId) fetchListProductByCategoryMutation();
-    else fetchListProductMutation();
+    if (categoryId)
+      fetchListProductByCategoryMutation({
+        page,
+        limit: AppConstant.PAGE_SIZE,
+        categoryId,
+        rating,
+      });
   };
 
   const handleViewDetail = (id: number, title: string) => {
@@ -125,7 +139,6 @@ const ListProductAdmin = () => {
     if (productId) {
       deleteProductMutation({ id: productId });
       setOpenModalAlertDelete(false);
-
       setListProduct(listProduct.filter((item) => item.id !== productId));
     }
   };
@@ -134,17 +147,18 @@ const ListProductAdmin = () => {
     router.push(`/review/admin/${id}/edit`);
   };
 
-  useEffect(() => {
-    fetchListProductMutation();
-  }, []);
+  const handlFetchData = async () => {
+    const res = await fetchAllCategoryMutation();
+    await fetchListProductByCategoryMutation({
+      page: AppConstant.FIRST_PAGE,
+      limit: AppConstant.PAGE_SIZE,
+      categoryId: res[0].id,
+    });
+  };
 
-  if (isPending) {
-    return (
-      <div className="flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
+  useEffect(() => {
+    handlFetchData();
+  }, []);
 
   return (
     <>
@@ -164,6 +178,7 @@ const ListProductAdmin = () => {
           </div>
         </div>
       </dialog>
+
       <div className="overflow-x-auto">
         <div className="m-10 flex justify-between items-center">
           <div className="flex flex-row gap-4 w-full items-center">
@@ -187,8 +202,6 @@ const ListProductAdmin = () => {
             </select>
             <div className="flex flex-col items-center gap-4 p-4">
               <h2 className="text-xl font-bold">Rate from 1 to 100</h2>
-
-              {/* DaisyUI-styled range input */}
               <input
                 type="range"
                 min="1"
@@ -197,18 +210,32 @@ const ListProductAdmin = () => {
                 onChange={handleRatingChange}
                 className="range range-primary w-full max-w-xs"
               />
-
-              {/* Display the current rating */}
               <div className="badge badge-lg badge-secondary">{rating}</div>
             </div>
           </div>
-          <button className="btn btn-info" onClick={handleSubmitFilter}>
-            Filter
-          </button>
+          <div className="flex gap-2">
+            <button className="btn btn-info" onClick={handleSubmitFilter}>
+              Filter
+            </button>
+            <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
+              Add New Product
+            </button>
+          </div>
         </div>
-        <table className="table">
-          {/* head */}
 
+        {showAddForm && (
+          <div className="m-10 mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Add New Product</h2>
+              <button onClick={() => setShowAddForm(false)} className="btn btn-ghost">
+                Cancel
+              </button>
+            </div>
+            <AddProductForm categories={listCategory || []} onSubmit={handleSubmitProduct} />
+          </div>
+        )}
+
+        <table className="table">
           <thead>
             <tr>
               <th>
@@ -217,9 +244,8 @@ const ListProductAdmin = () => {
                 </label>
               </th>
               <th>Name</th>
-              <th>Job</th>
-              <th>Created At</th>
-              <th>Favorite Color</th>
+              <th>Category</th>
+              <th>Rating</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -249,13 +275,8 @@ const ListProductAdmin = () => {
                     </div>
                   </div>
                 </td>
-                <td>
-                  Zemlak, Daniel and Leannon
-                  <br />
-                  <span className="badge badge-ghost badge-sm">Desktop Support Technician</span>
-                </td>
-                <td>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</td>
-                <td>Purple</td>
+                <td>{item.category.name}</td>
+                <td>{item.rating}/100</td>
                 <th className="flex gap-2">
                   <button
                     className="btn btn-info btn-sm"

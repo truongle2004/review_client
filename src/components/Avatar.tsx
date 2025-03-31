@@ -36,6 +36,7 @@ const Avatar: FC<AvatarProps> = ({ src, username, size = 'md' }) => {
             style={{ objectFit: 'cover' }} // Ensure the image covers the container
             sizes="100%" // important
             priority // Optionally add priority for above the fold images
+            className="object-cover"
           />
         </div>
       </div>

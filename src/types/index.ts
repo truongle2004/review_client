@@ -79,15 +79,24 @@ export interface Review {
   review_images: ReviewImage[];
 }
 
+export interface CommentImage {
+  url: string;
+}
+
 export interface Comment {
-  id: string;
-  text: string;
+  commentId: string;
+  content: string;
+  parentId: string | null;
+  images: CommentImage[];
+  updatedAt: Date;
   user: {
     id: string;
-    name: string;
+    username: string;
+    profile: {
+      id: string;
+      profile_picture: string;
+    };
   };
-  images: string[] | null;
-  children: Comment[];
 }
 
 export interface ReviewImage {
@@ -129,9 +138,7 @@ export interface RefreshTokenResponse {
 export interface CommentResponse {
   status: number;
   message: string;
-  data: {
-    comments: Comment[];
-  };
+  data: Comment[];
 }
 
 export interface ProfileInfo {
@@ -146,6 +153,8 @@ export interface ProfileInfo {
 
 export interface UpdateProfileInfo {
   userId: string;
+  username: string;
+  email: string;
   profilePicture: string;
   country: string;
   phone: string;
