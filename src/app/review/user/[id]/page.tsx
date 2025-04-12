@@ -43,25 +43,12 @@ const UserPage = () => {
       <div className="flex flex-col gap-10 font-bold text-pink-50">
         {/* Avatar Section */}
         <Image
-          src={userProfile?.data.profile.profile_picture || avatar}
+          src={userProfile?.data?.profile?.profile_picture ?? avatar}
           alt="User Avatar"
           className="h-96 w-96 ring ring-cyan-50 rounded-full object-cover"
           width={384}
           height={384}
         />
-        {/*USER EXPERIENCE*/}
-        <div>
-          <h3>USER EXPERIENCE</h3>
-          <div>
-            <nav>
-              <ul className="list-disc">
-                <li>React.js</li>
-                <li>Next.js</li>
-                <li>Node.js</li>
-              </ul>
-            </nav>
-          </div>
-        </div>
       </div>
 
       {/* User Info Section */}
@@ -72,7 +59,7 @@ const UserPage = () => {
           <div className="flex items-center gap-2 text-gray-600">
             <FontAwesomeIcon icon={faLocationDot} />
             <span className="text-white">
-              {userProfile?.data.profile.country || 'Not specified'}
+              {userProfile?.data?.profile?.country ?? 'Not specified'}
             </span>
           </div>
         </div>

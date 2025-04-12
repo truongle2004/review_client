@@ -2,6 +2,7 @@
 
 import { login_schema } from '@/schema';
 import { loginAccountAPI } from '@/services/auth';
+import useAuthStore from '@/store/authStore';
 import type { LoginInfo } from '@/types';
 import { ToastError, ToastSuccess } from '@/utils/toastify';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,19 +13,35 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import BgImage from '../../../../public/vecteezy_concept-illustration-of-man-and-woman-friends-having-online_8296859.jpg';
 import axiosInstance from '@/utils/axiosInstance';
+import tokenDecoder from '@/utils/tokenDecode';
 
 const LoginPage = () => {
   const router = useRouter();
+  const { setIsAdmin, setUserId } = useAuthStore();
+
   const { mutate: loginAccountMutation } = useMutation({
     mutationFn: loginAccountAPI,
     onSuccess: (data) => {
       ToastSuccess(data.message);
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${data.data.accessToken}`;
-      localStorage.setItem('token', data.data.accessToken);
-      if (window.history.length > 1) {
-        router.back();
-      } else {
-        router.push('/review/home');
+      const token = data.data.accessToken;
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      localStorage.setItem('token', token);
+
+      // Decode token to get user info
+      const decodedToken = tokenDecoder(token);
+      if (decodedToken) {
+        console.log(decodedToken);
+        setUserId(decodedToken.userId);
+        setIsAdmin(decodedToken.roles === 'ADMIN');
+
+        // Navigate based on role
+        if (decodedToken.roles === 'ADMIN') {
+          router.push('/review/admin/overview');
+        } else if (window.history.length > 1) {
+          router.back();
+        } else {
+          router.push('/review/home');
+        }
       }
     },
     onError: (err) => {

@@ -1,5 +1,5 @@
 import { env } from '@/enviroment/env';
-import type { ReviewImage, Review } from '@/types';
+import type { ReviewImage, Review, SearchResponse } from '@/types';
 import axiosInstance from '@/utils/axiosInstance';
 
 export const uploadImages = async ({ reviewId, images }: { reviewId: string; images: File[] }) => {
@@ -73,20 +73,26 @@ export const deleteReview = async (reviewId: string) => {
 };
 
 export const updateReview = async ({
+  reviewId,
   userId,
   content,
   title,
   productId,
 }: {
+  reviewId: string;
   userId: string;
   content: string;
   title: string;
   productId: number;
 }) => {
-  return await axiosInstance.put(env.SERVER_URL + '/v1/review', {
+  return await axiosInstance.put(env.SERVER_URL + '/v1/review/' + reviewId, {
     userId,
     content,
     title,
     productId,
   });
+};
+
+export const searchReview = async (title: string): Promise<SearchResponse> => {
+  return await axiosInstance.get(env.SERVER_URL + `/v1/review/search/${title}`);
 };

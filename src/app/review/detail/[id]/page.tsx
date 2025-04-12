@@ -9,9 +9,9 @@ import { addComment, getAllComment } from '@/services/comment';
 import { addRatingAPI } from '@/services/rating';
 import { deleteReview, getDetailReviewAPI, getReviewImages, updateReview } from '@/services/review';
 import useAuthStore from '@/store/authStore';
-import { type Comment, type CommentResponse } from '@/types';
+import { type CommentResponse } from '@/types';
 import { ToastError, ToastSuccess } from '@/utils/toastify';
-import { faComment, faImage, faPen } from '@fortawesome/free-solid-svg-icons';
+import { faImage, faPen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import zod from 'zod';
 import avatar from '../../../../../public/my-notion-face-transparent.png';
+import { AxiosError } from 'axios';
+
+interface ErrorResponse {
+  message: string;
+}
 
 const comment_schema = zod.object({
   content: zod.string().nonempty({
@@ -64,6 +69,7 @@ const ReviewDetailPage = () => {
   const [editedContent, setEditedContent] = useState('');
   const [editedTitle, setEditedTitle] = useState('');
   const router = useRouter();
+  const [openModalDelete, setOpenModalDelete] = useState(false);
 
   const { mutate: addCommentMutation, isPending } = useMutation({
     mutationFn: addComment,
@@ -96,6 +102,18 @@ const ReviewDetailPage = () => {
 
   const { mutate: addRatingAPIMutation } = useMutation({
     mutationFn: addRatingAPI,
+    onSuccess: () => {
+      ToastSuccess('Rating submitted successfully');
+      queryClient.invalidateQueries({ queryKey: ['review', params.id] });
+      getDetailReviewMutation(params.id);
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      if (error.response?.status === 409) {
+        ToastError(error.response.data?.message || 'You have already rated this review');
+      } else {
+        ToastError('Failed to submit rating');
+      }
+    },
   });
 
   const handleSubmitRating = async () => {
@@ -162,6 +180,7 @@ const ReviewDetailPage = () => {
   const { mutate: updateReviewMutation } = useMutation({
     mutationFn: () =>
       updateReview({
+        reviewId: params.id,
         userId: userInfo?.userId as string,
         content: editedContent,
         title: editedTitle,
@@ -171,6 +190,8 @@ const ReviewDetailPage = () => {
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['review', params.id] });
       ToastSuccess('Review updated successfully');
+
+      getDetailReviewMutation(params.id);
     },
     onError: () => {
       ToastError('Failed to update review');
@@ -181,7 +202,7 @@ const ReviewDetailPage = () => {
     mutationFn: () => deleteReview(params.id),
     onSuccess: () => {
       ToastSuccess('Review deleted successfully');
-      router.push('/review');
+      router.back();
     },
     onError: () => {
       ToastError('Failed to delete review');
@@ -202,13 +223,21 @@ const ReviewDetailPage = () => {
   };
 
   const handleSaveEdit = () => {
+    if (params.id === undefined) return;
     updateReviewMutation();
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this review?')) {
-      deleteReviewMutation();
-    }
+    setOpenModalDelete(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteReviewMutation();
+    setOpenModalDelete(false);
+  };
+
+  const handleCancelDelete = () => {
+    setOpenModalDelete(false);
   };
 
   const handleGoBack = () => {
@@ -260,6 +289,23 @@ const ReviewDetailPage = () => {
       <Navbar />
 
       <article className="max-w-4xl mx-auto py-8">
+        <dialog id="my_modal_1" className={`modal ${openModalDelete ? 'modal-open' : ''}`}>
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Warning!</h3>
+            <p className="py-4">Are you sure you want to delete this review?</p>
+            <div className="modal-action">
+              <form method="dialog" className="flex flex-row gap-4">
+                <button className="btn btn-success" onClick={handleConfirmDelete}>
+                  Sure
+                </button>
+                <button className="btn btn-warning" onClick={handleCancelDelete}>
+                  Cancel
+                </button>
+              </form>
+            </div>
+          </div>
+        </dialog>
+
         <button
           className="cursor-pointer duration-200 hover:scale-125 active:scale-100"
           title="Go Back"

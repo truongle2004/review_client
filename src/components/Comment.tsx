@@ -12,6 +12,12 @@ import TextEditor from './TextEditor';
 import Image from 'next/image';
 import type { CommentImage } from '@/types';
 import { env } from '@/enviroment/env';
+import { ToastSuccess, ToastError } from '@/utils/toastify';
+import { AxiosError } from 'axios';
+
+interface ErrorResponse {
+  message: string;
+}
 
 interface CommentProps {
   comment_id: string;
@@ -40,6 +46,7 @@ const Comment: FC<CommentProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [openModalDelete, setOpenModalDelete] = useState(false);
 
   const { mutate: updateCommentMutation } = useMutation({
     mutationFn: updateComment,
@@ -59,7 +66,11 @@ const Comment: FC<CommentProps> = ({
         parentId: '',
       }),
     onSuccess: () => {
+      ToastSuccess('Comment deleted successfully');
       onSuccess?.();
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      ToastError(error.response?.data?.message || 'Failed to delete comment');
     },
   });
 
@@ -122,24 +133,160 @@ const Comment: FC<CommentProps> = ({
   };
 
   const handleSaveReply = () => {
+    if (!replyContent) return;
+    if (!params.id) return;
+    if (!comment_id) return;
+
     replyCommentMutation(replyContent);
   };
 
   const handleDelete = () => {
+    setOpenModalDelete(true);
+  };
+
+  const handleConfirmDelete = () => {
     deleteCommentMutation();
+    setOpenModalDelete(false);
+  };
+
+  const handleCancelDelete = () => {
+    setOpenModalDelete(false);
   };
 
   return (
-    <div className={`mt-10 mb-10 ${isChild ? 'ml-8 w-[calc(100%-2rem)]' : 'w-full'}`}>
-      <div className="p-4 border rounded-lg shadow-md bg-base-100">
-        <div className="flex items-center justify-between">
-          <Avatar src={profilePicture} username={username} />
-          <p className="text-sm text-gray-500">{new Date(createAt).toLocaleDateString()}</p>
+    <>
+      <dialog id="my_modal_1" className={`modal ${openModalDelete ? 'modal-open' : ''}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Warning!</h3>
+          <p className="py-4">Are you sure you want to delete this comment?</p>
+          <div className="modal-action">
+            <form method="dialog" className="flex flex-row gap-4">
+              <button className="btn btn-success" onClick={handleConfirmDelete}>
+                Sure
+              </button>
+              <button className="btn btn-warning" onClick={handleCancelDelete}>
+                Cancel
+              </button>
+            </form>
+          </div>
         </div>
-        <div className="mt-2">
-          {isEditing ? (
-            <div>
-              <TextEditor defaultValue={editedContent} setValue={setEditedContent} field="edit" />
+      </dialog>
+
+      <div className={`mt-10 mb-10 ${isChild ? 'ml-8 w-[calc(100%-2rem)]' : 'w-full'}`}>
+        <div className="p-4 border rounded-lg shadow-md bg-base-100">
+          <div className="flex items-center justify-between">
+            <Avatar
+              src={
+                profilePicture ??
+                'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg'
+              }
+              username={username}
+            />
+            <p className="text-sm text-gray-500">{new Date(createAt).toLocaleDateString()}</p>
+          </div>
+          <div className="mt-2">
+            {isEditing ? (
+              <div>
+                <TextEditor defaultValue={editedContent} setValue={setEditedContent} field="edit" />
+                <div className="mt-4">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageSelect}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="btn btn-sm btn-outline"
+                  >
+                    <FontAwesomeIcon icon={faImage} className="mr-2" />
+                    Add Images
+                  </button>
+                  {previewUrls.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {previewUrls.map((url, index) => (
+                        <div key={index} className="relative">
+                          <Image
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-20 h-20 object-cover rounded"
+                            width={80}
+                            height={80}
+                          />
+                          <button
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <span
+                    className="text-blue-500 cursor-pointer"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </span>
+                  <span className="text-blue-500 cursor-pointer" onClick={handleSaveEdit}>
+                    Save
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-white" dangerouslySetInnerHTML={{ __html: editedContent }}></p>
+                {imageUrls.map((url, index) => (
+                  <Image
+                    key={index}
+                    src={`${env.SERVER_URL}/${url.url}`}
+                    alt={`Preview ${index + 1}`}
+                    className="w-20 h-20 object-cover rounded"
+                    width={80}
+                    height={80}
+                  />
+                ))}
+              </>
+            )}
+          </div>
+          {!isEditing && (
+            <div className="flex gap-2 mt-3">
+              <span
+                className="text-blue-500 cursor-pointer hover:text-blue-400"
+                onClick={() => setIsReplying(!isReplying)}
+              >
+                Reply
+              </span>
+              {userId === userInfo?.userId && (
+                <>
+                  <span
+                    className="text-blue-500 cursor-pointer hover:text-blue-400"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setIsReplying(false);
+                    }}
+                  >
+                    Edit
+                  </span>
+                  <span
+                    className="text-red-500 cursor-pointer hover:text-red-400"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+          {isReplying && !isEditing && (
+            <div className="mt-2">
+              <TextEditor defaultValue={replyContent} setValue={setReplyContent} field="reply" />
               <div className="mt-4">
                 <input
                   type="file"
@@ -165,8 +312,6 @@ const Comment: FC<CommentProps> = ({
                           src={url}
                           alt={`Preview ${index + 1}`}
                           className="w-20 h-20 object-cover rounded"
-                          width={80}
-                          height={80}
                         />
                         <button
                           onClick={() => removeImage(index)}
@@ -180,107 +325,18 @@ const Comment: FC<CommentProps> = ({
                 )}
               </div>
               <div className="flex gap-2 mt-2">
-                <span className="text-blue-500 cursor-pointer" onClick={() => setIsEditing(false)}>
+                <span className="text-blue-500 cursor-pointer" onClick={() => setIsReplying(false)}>
                   Cancel
                 </span>
-                <span className="text-blue-500 cursor-pointer" onClick={handleSaveEdit}>
+                <span className="text-blue-500 cursor-pointer" onClick={handleSaveReply}>
                   Save
                 </span>
               </div>
             </div>
-          ) : (
-            <>
-              <p className="text-white" dangerouslySetInnerHTML={{ __html: editedContent }}></p>
-              {imageUrls.map((url, index) => (
-                <Image
-                  key={index}
-                  src={`${env.SERVER_URL}/${url.url}`}
-                  alt={`Preview ${index + 1}`}
-                  className="w-20 h-20 object-cover rounded"
-                  width={80}
-                  height={80}
-                />
-              ))}
-            </>
           )}
         </div>
-        {!isEditing && (
-          <div className="flex gap-2 mt-3">
-            <span
-              className="text-blue-500 cursor-pointer"
-              onClick={() => setIsReplying(!isReplying)}
-            >
-              Reply
-            </span>
-            <span
-              className="text-blue-500 cursor-pointer"
-              onClick={() => {
-                setIsEditing(true);
-                setIsReplying(false);
-              }}
-            >
-              Edit
-            </span>
-
-            {userId === userInfo?.userId && (
-              <span className="text-blue-500 cursor-pointer" onClick={handleDelete}>
-                Delete
-              </span>
-            )}
-          </div>
-        )}
-        {isReplying && !isEditing && (
-          <div className="mt-2">
-            <TextEditor defaultValue={replyContent} setValue={setReplyContent} field="reply" />
-            <div className="mt-4">
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept="image/*"
-                multiple
-                onChange={handleImageSelect}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="btn btn-sm btn-outline"
-              >
-                <FontAwesomeIcon icon={faImage} className="mr-2" />
-                Add Images
-              </button>
-              {previewUrls.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {previewUrls.map((url, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={url}
-                        alt={`Preview ${index + 1}`}
-                        className="w-20 h-20 object-cover rounded"
-                      />
-                      <button
-                        onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2 mt-2">
-              <span className="text-blue-500 cursor-pointer" onClick={() => setIsReplying(false)}>
-                Cancel
-              </span>
-              <span className="text-blue-500 cursor-pointer" onClick={handleSaveReply}>
-                Save
-              </span>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 };
 

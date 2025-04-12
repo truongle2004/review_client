@@ -2,6 +2,7 @@
 
 import Description from '@/components/Description';
 import ImageSlider from '@/components/ImageSlider';
+import Navbar from '@/components/NavBar';
 import RatingDisplay from '@/components/Rating';
 import WriteReview from '@/components/WriteReview';
 import { env } from '@/enviroment/env';
@@ -9,7 +10,7 @@ import { fetchProductDetailAPI } from '@/services/product';
 import { addNewReviewAPI, getReviewImages, getReviewsAPI, uploadImages } from '@/services/review';
 import useAuthStore from '@/store/authStore';
 import { Review } from '@/types';
-import { ToastError, ToastWarning } from '@/utils/toastify';
+import { ToastError, ToastSuccess, ToastWarning } from '@/utils/toastify';
 import tokenDecoder from '@/utils/tokenDecode';
 import { faComment, faShare } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -51,7 +52,7 @@ const ListingReviewPage = () => {
     mutationFn: addNewReviewAPI,
     onSuccess: () => {
       setShowWriteReview(false);
-      // ToastSuccess('Review submitted successfully');
+      ToastSuccess('Review submitted successfully');
     },
     onError: (err) => {
       console.log(err.message);
@@ -100,6 +101,8 @@ const ListingReviewPage = () => {
           images,
         });
       }
+
+      await handleFetchingData();
     } catch (err) {
       console.log(err);
       ToastError('There something went wrong. Please try again');
@@ -118,6 +121,12 @@ const ListingReviewPage = () => {
           review_images: res_image,
         });
       });
+    });
+
+    result.sort((a, b) => {
+      const dateA = new Date(a.review_created_at);
+      const dateB = new Date(b.review_created_at);
+      return dateB.getTime() - dateA.getTime();
     });
 
     setReviews(result);
@@ -140,8 +149,13 @@ const ListingReviewPage = () => {
     );
   }
 
+  const handleGoBack = () => {
+    router.back();
+  };
+
   return (
     <>
+      <Navbar />
       <div className="flex flex-row flex-wrap gap-6 p-4 container mx-auto bg-base-200">
         <div className="flex flex-col gap-6 min-w-[300px]">
           {/* Main Review Card */}

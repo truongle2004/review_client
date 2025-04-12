@@ -98,13 +98,22 @@ const ListProductAdmin = () => {
   };
 
   const handleLoadMore = () => {
-    if (categoryId)
-      fetchListProductByCategoryMutation({
-        page,
-        limit: AppConstant.PAGE_SIZE,
-        categoryId,
-        rating,
-      });
+    fetchListProductByCategoryMutation({
+      page,
+      limit: AppConstant.PAGE_SIZE,
+      categoryId: categoryId ?? 0,
+      rating,
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchListProductByCategoryMutation({
+      page: newPage,
+      limit: AppConstant.PAGE_SIZE,
+      categoryId: categoryId ?? 0,
+      rating,
+    });
   };
 
   const handleViewDetail = (id: number, title: string) => {
@@ -118,11 +127,6 @@ const ListProductAdmin = () => {
 
   const handleRatingChange = (e: ChangeEvent<HTMLInputElement>) => {
     setRating(Number(e.target.value));
-  };
-
-  const handlePageChange = (page: number) => {
-    setPage(page);
-    handleLoadMore();
   };
 
   const handleDeleteProduct = (id: number) => {
@@ -155,6 +159,12 @@ const ListProductAdmin = () => {
       categoryId: res[0].id,
     });
   };
+
+  useEffect(() => {
+    if (page > AppConstant.FIRST_PAGE) {
+      handleLoadMore();
+    }
+  }, [page]);
 
   useEffect(() => {
     handlFetchData();

@@ -11,6 +11,9 @@ import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import PhoneInput from 'react-phone-number-input';
 import useAuthStore from '@/store/authStore';
+import Image from 'next/image';
+import avatar from '../../../../../public/my-notion-face-transparent.png';
+import { env } from '@/enviroment/env';
 
 interface AboutProps {
   userProfile: UserProfileResponse['data'];
@@ -18,15 +21,15 @@ interface AboutProps {
 
 const About: React.FC<AboutProps> = ({ userProfile }) => {
   const { userInfo } = useAuthStore();
-  const [bio, setBio] = useState(userProfile.profile.bio || '');
-  const [phone, setPhoneNumber] = useState(userProfile.profile.phone || '');
-  const [gender, setGender] = useState(userProfile.profile.gender || '');
-  const [country, setCountry] = useState(userProfile.profile.country || '');
+  const [bio, setBio] = useState(userProfile?.profile?.bio || '');
+  const [phone, setPhoneNumber] = useState(userProfile?.profile?.phone || '');
+  const [gender, setGender] = useState(userProfile?.profile?.gender || '');
+  const [country, setCountry] = useState(userProfile?.profile?.country || '');
   const [birthday, setBirthday] = useState(
-    userProfile.profile.birthday ? new Date(userProfile.profile.birthday) : new Date()
+    userProfile?.profile?.birthday ? new Date(userProfile.profile.birthday) : new Date()
   );
-  const [username, setUsername] = useState(userProfile.username || '');
-  const [email, setEmail] = useState(userProfile.email || '');
+  const [username, setUsername] = useState(userProfile?.username || '');
+  const [email, setEmail] = useState(userProfile?.email || '');
 
   const handleSetBio = (value: string) => setBio(value);
 
@@ -34,13 +37,15 @@ const About: React.FC<AboutProps> = ({ userProfile }) => {
 
   const handleCancel = () => {
     // Reset form values to original data
-    setBio(userProfile.profile.bio || '');
-    setPhoneNumber(userProfile.profile.phone || '');
-    setGender(userProfile.profile.gender || '');
-    setCountry(userProfile.profile.country || '');
-    setBirthday(userProfile.profile.birthday ? new Date(userProfile.profile.birthday) : new Date());
-    setUsername(userProfile.username || '');
-    setEmail(userProfile.email || '');
+    setBio(userProfile?.profile?.bio || '');
+    setPhoneNumber(userProfile?.profile?.phone || '');
+    setGender(userProfile?.profile?.gender || '');
+    setCountry(userProfile?.profile?.country || '');
+    setBirthday(
+      userProfile?.profile?.birthday ? new Date(userProfile.profile.birthday) : new Date()
+    );
+    setUsername(userProfile?.username || '');
+    setEmail(userProfile?.email || '');
     setOpen(false);
   };
 
@@ -58,7 +63,7 @@ const About: React.FC<AboutProps> = ({ userProfile }) => {
   const handleCloseEditAndSave = () => {
     const profileData: UpdateProfileInfo = {
       userId: userInfo.userId as string,
-      profilePicture: userProfile.profile.profile_picture,
+      profilePicture: userProfile?.profile?.profile_picture || '',
       country,
       phone,
       gender,

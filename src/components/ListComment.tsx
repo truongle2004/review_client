@@ -40,16 +40,18 @@ const CommentTree: FC<CommentTreeProps> = ({
         onSuccess={onSuccess}
         isChild={level > 0}
       />
-      {replies.map((reply) => (
-        <CommentTree
-          key={reply.commentId}
-          comment={reply}
-          imagesUrl={reply.images}
-          onSuccess={onSuccess}
-          profilePicture={reply.user.profile.profile_picture}
-          level={level + 1}
-        />
-      ))}
+      {replies.map((reply) => {
+        return (
+          <CommentTree
+            key={reply.commentId}
+            comment={reply}
+            imagesUrl={reply.images || []}
+            onSuccess={onSuccess}
+            profilePicture={reply.user.profile?.profile_picture}
+            level={level + 1}
+          />
+        );
+      })}
     </div>
   );
 };
@@ -71,6 +73,7 @@ const ListComment: FC<ListCommentProps> = ({ comments, reviewId }) => {
       commentMap.set(comment.commentId, []);
     } else {
       const replies = commentMap.get(comment.parentId) || [];
+      console.log('replies', replies);
       replies.push(comment);
       commentMap.set(comment.parentId, replies);
     }
@@ -78,17 +81,19 @@ const ListComment: FC<ListCommentProps> = ({ comments, reviewId }) => {
 
   return (
     <div className="mt-10 space-y-4">
-      {rootComments.map((comment) => (
-        <CommentTree
-          key={comment.commentId}
-          comment={comment}
-          imagesUrl={comment.images}
-          onSuccess={handleCommentSuccess}
-          profilePicture={comment.user.profile.profile_picture}
-          level={0}
-          replies={commentMap.get(comment.commentId) || []}
-        />
-      ))}
+      {rootComments.map((comment) => {
+        return (
+          <CommentTree
+            key={comment.commentId}
+            comment={comment}
+            imagesUrl={comment.images}
+            onSuccess={handleCommentSuccess}
+            profilePicture={comment.user.profile?.profile_picture}
+            level={0}
+            replies={commentMap.get(comment.commentId) || []}
+          />
+        );
+      })}
     </div>
   );
 };

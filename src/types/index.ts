@@ -174,3 +174,11 @@ export interface UserProfileResponse {
     profile: ProfileInfo;
   };
 }
+
+export interface SearchResponse {
+  message: string;
+  data: {
+    id: string;
+    title: string;
+  }[];
+}

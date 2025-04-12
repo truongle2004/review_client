@@ -40,7 +40,7 @@ axiosInstance.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return axiosInstance(originalRequest);
       } catch (err) {
-        ToastWarning('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
+        // ToastWarning('Phiên đăng nhập hết hạn, vui lòng đăng nhập lại');
         window.location.href = '/review/login';
         return Promise.reject(err);
       }

@@ -21,6 +21,7 @@ const schema = zod.object({
 const WriteReview: FC<WriteReviewProps> = ({ handleSubmitReview }) => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [rating, setRating] = useState(0);
 
   const {
     register,
